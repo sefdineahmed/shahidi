@@ -62,6 +62,9 @@ def a_propos():
         {"icon": "🕒", "value": "58%", "label": "Survie à 5 ans"},
         {"icon": "📈", "value": "1200+", "label": "Cas annuels"},
         {"icon": "🎯", "value": "89%", "label": "Précision du modèle"}
+        {"icon": "🕒", "value": "58%", "label": "Survie à 5 ans"},
+        {"icon": "📈", "value": "1200+", "label": "Cas annuels"},
+        {"icon": "🎯", "value": "89%", "label": "Précision du modèle"}
     ]
     for col, stat in zip(cols, stats):
         with col:
