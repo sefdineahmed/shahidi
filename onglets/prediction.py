@@ -4,7 +4,7 @@ import plotly.express as px
 from datetime import date  
 import io  
 from fpdf import FPDF  
-from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient, MODELS  
+from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient  
 
 # Style CSS personnalisé  
 st.markdown("""  
@@ -107,16 +107,13 @@ def modelisation():
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
   
-    input_df = encode_features(inputs)
-  
-    # Utilisation exclusive du modèle DeepSurv
-    model_name = "DeepSurv"
-    model_path = MODELS["DeepSurv"]
+    input_df = encode_features(inputs)  
+    model_name = "DeepSurv"  # On définit ici le modèle DeepSurv  
   
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
-                model = load_model(model_path)  
+                model = load_model("models/deepsurv.keras")  # Charge le modèle DeepSurv
                 pred = predict_survival(model, input_df, model_name)  
                 cleaned_pred = clean_prediction(pred, model_name)  
   
