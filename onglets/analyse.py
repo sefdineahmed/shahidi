@@ -1,47 +1,31 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from utils import load_data  # Assurez-vous que cette fonction existe
 
-# Style CSS personnalisé
+# CSS personnalisé
 st.markdown("""
 <style>
-    :root {
-        --primary: #2e77d0;
-        --secondary: #1d5ba6;
-        --accent: #22d3ee;
-    }
-
     .header-card {
         background: rgba(255, 255, 255, 0.95);
         border-radius: 15px;
         padding: 2rem;
         margin: 1rem 0;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border-left: 5px solid var(--primary);
+        border-left: 5px solid #2e77d0;
     }
-
-    .metric-card {
-        background: linear-gradient(135deg, #f8faff, #ffffff);
-        border-radius: 12px;
+    .metric-box {
+        background-color: #f2f8ff;
         padding: 1.5rem;
-        margin: 0.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-
-    .metric-card:hover {
-        transform: translateY(-3px);
-    }
-
-    .chart-container {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    .metric-value {
+        font-size: 2rem;
+        color: #2e77d0;
+        font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -49,125 +33,97 @@ st.markdown("""
 def analyse_descriptive():
     st.title("🔍 Analyse Exploratoire des Données")
 
-    # Chargement des données
     df = load_data()
     if df.empty:
         st.error("Aucune donnée disponible")
         return
 
-    # SECTION 1 - STRUCTURE DES DONNÉES
-    with st.container():
-        st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-        st.subheader("📁 Structure des Données")
+    # ────────── Aperçu ──────────
+    st.markdown("<div class='header-card'>", unsafe_allow_html=True)
+    st.subheader("📁 Vue d'Ensemble")
+    st.dataframe(df.head(), height=250)
+    
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("<div class='metric-box'>Nombre de Patients<br><span class='metric-value'>{}</span></div>".format(df.shape[0]), unsafe_allow_html=True)
+    with c2:
+        st.markdown("<div class='metric-box'>Nombre de Variables<br><span class='metric-value'>{}</span></div>".format(df.shape[1]), unsafe_allow_html=True)
+    with c3:
+        missing = df.isna().sum().sum()
+        missing_pct = df.isna().mean().mean() * 100
+        st.markdown("<div class='metric-box'>Données Manquantes<br><span class='metric-value'>{} ({:.1f}%)</span></div>".format(missing, missing_pct), unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Nombre de Patients", df.shape[0])
-        col2.metric("Nombre de Variables", df.shape[1])
-        col3.metric("Données Manquantes", f"{df.isna().sum().sum()} ({df.isna().mean().mean()*100:.1f}%)")
+    st.markdown("---")
 
-        st.dataframe(df.head(5).style.format(precision=2), height=250)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # ────────── Statistiques descriptives ──────────
+    st.markdown("<div class='header-card'>", unsafe_allow_html=True)
+    st.subheader("📊 Statistiques Descriptives")
 
-    # SECTION 2 - VARIABLES CATÉGORIELLES
-    with st.container():
-        st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-        st.subheader("🏷️ Variables Catégorielles")
+    selected_var = st.selectbox("Sélectionner une variable à analyser", df.columns)
 
-        cat_vars = df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
-        if cat_vars:
-            st.write("Variables catégorielles détectées :")
-            st.code(", ".join(cat_vars), language='text')
-        else:
-            st.info("Aucune variable catégorielle détectée.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # SECTION 3 - STATISTIQUES DESCRIPTIVES
-    with st.container():
-        st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-        st.subheader("📈 Statistiques Descriptives")
-
-        selected_var = st.selectbox("Sélectionner une variable à analyser :", df.columns)
-
-        # Si la variable est numérique
-        if pd.api.types.is_numeric_dtype(df[selected_var]):
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("Moyenne", f"{df[selected_var].mean():.2f}")
-            col2.metric("Médiane", f"{df[selected_var].median():.2f}")
-            col3.metric("Écart-type", f"{df[selected_var].std():.2f}")
-            col4.metric("Valeurs uniques", df[selected_var].nunique())
-
-        # Sinon (catégorielle)
-        else:
-            mode = df[selected_var].mode().iloc[0]
-            count_mode = df[selected_var].value_counts().iloc[0]
-            n_unique = df[selected_var].nunique()
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Valeur la plus fréquente", mode)
-            col2.metric("Effectif", count_mode)
-            col3.metric("Valeurs uniques", n_unique)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # SECTION 4 - VISUALISATIONS
-    with st.container():
-        st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-        st.subheader("📊 Visualisations")
-
-        col1, col2 = st.columns(2)
-
+    if pd.api.types.is_numeric_dtype(df[selected_var]):
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            with st.expander("Distribution", expanded=True):
-                if pd.api.types.is_numeric_dtype(df[selected_var]):
-                    fig = px.histogram(df, x=selected_var, nbins=30, color_discrete_sequence=['#2e77d0'])
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    fig = px.bar(df[selected_var].value_counts().reset_index(),
-                                 x='index', y=selected_var,
-                                 color_discrete_sequence=['#2e77d0'],
-                                 labels={'index': selected_var, selected_var: 'Effectif'})
-                    st.plotly_chart(fig, use_container_width=True)
-
+            st.metric("Moyenne", f"{df[selected_var].mean():.2f}")
         with col2:
-            with st.expander("Corrélations (numériques uniquement)", expanded=True):
-                numeric_df = df.select_dtypes(include=["number"])
-                if numeric_df.shape[1] >= 2:
-                    corr_matrix = numeric_df.corr()
-                    fig = go.Figure(data=go.Heatmap(
-                        z=corr_matrix,
-                        x=corr_matrix.columns,
-                        y=corr_matrix.columns,
-                        colorscale='Blues',
-                        zmin=-1, zmax=1
-                    ))
-                    fig.update_layout(title='Matrice de Corrélation', height=500)
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("Pas assez de variables numériques pour afficher une matrice de corrélation.")
+            st.metric("Médiane", f"{df[selected_var].median():.2f}")
+        with col3:
+            st.metric("Écart-Type", f"{df[selected_var].std():.2f}")
+        with col4:
+            st.metric("Valeurs Uniques", f"{df[selected_var].nunique()}")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        fig = px.histogram(df, x=selected_var, nbins=30, color_discrete_sequence=['#2e77d0'])
+        st.plotly_chart(fig, use_container_width=True)
 
-    # SECTION 5 - DONNÉES MANQUANTES
-    with st.container():
-        st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-        st.subheader("🔎 Données Manquantes")
+    else:
+        st.info(f"🔠 Variable catégorielle détectée : **{selected_var}**")
+        cat_counts = df[selected_var].value_counts().reset_index()
+        cat_counts.columns = [selected_var, "Effectif"]
 
-        missing_data = df.isna().sum().reset_index()
-        missing_data.columns = ['Variable', 'Valeurs Manquantes']
-        missing_data = missing_data[missing_data['Valeurs Manquantes'] > 0]
+        fig = px.bar(cat_counts, x=selected_var, y="Effectif", color="Effectif", color_continuous_scale='Blues')
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(cat_counts)
 
-        if not missing_data.empty:
-            fig = px.bar(
-                missing_data,
-                x='Variable',
-                y='Valeurs Manquantes',
-                color='Valeurs Manquantes',
-                color_continuous_scale='Blues'
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.success("✅ Aucune donnée manquante détectée.")
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("---")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+    # ────────── Corrélation ──────────
+    st.markdown("<div class='header-card'>", unsafe_allow_html=True)
+    st.subheader("🔗 Matrice de Corrélation")
+
+    numeric_df = df.select_dtypes(include="number")
+    if not numeric_df.empty:
+        corr = numeric_df.corr()
+        fig = go.Figure(data=go.Heatmap(
+            z=corr,
+            x=corr.columns,
+            y=corr.columns,
+            colorscale='Blues',
+            zmin=-1,
+            zmax=1
+        ))
+        fig.update_layout(title="Corrélation entre variables numériques", height=500)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Aucune variable numérique pour la corrélation")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # ────────── Valeurs manquantes ──────────
+    st.markdown("<div class='header-card'>", unsafe_allow_html=True)
+    st.subheader("🔎 Analyse des Données Manquantes")
+
+    missing_data = df.isna().sum()
+    missing_data = missing_data[missing_data > 0].reset_index()
+    missing_data.columns = ["Variable", "Valeurs Manquantes"]
+
+    if not missing_data.empty:
+        fig = px.bar(missing_data, x="Variable", y="Valeurs Manquantes", color="Valeurs Manquantes", color_continuous_scale="Blues")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.success("✅ Aucune donnée manquante détectée")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     analyse_descriptive()
