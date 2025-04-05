@@ -131,7 +131,10 @@ def modelisation():
                 patient_data["Deces"] = "OUI"
 
                 # Enregistrement automatique du patient
-                save_new_patient(patient_data)
+                try:
+                    save_new_patient(patient_data)  # Assurez-vous que cette fonction est correcte
+                except Exception as e:
+                    st.error(f"Erreur lors de l'enregistrement des données : {str(e)}")
 
                 with st.container():
                     st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)
