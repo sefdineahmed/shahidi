@@ -38,6 +38,7 @@ def accueil():
                 font-weight: bold;
                 color: green;     /* 🔁 COULEUR DU TITRE PRINCIPAL */
                 margin-bottom: 6rem;
+                animation: fadeInTitle 3s ease-in-out;
             }}
 
             /* SOUS-TITRE */
@@ -45,6 +46,7 @@ def accueil():
                 font-size: 4rem;  /* 🔁 AUGMENTE OU RÉDUIS ICI */
                 color: green;     /* 🔁 COULEUR DU SOUS-TITRE */
                 margin-bottom: 2rem;
+                animation: fadeInSubTitle 4s ease-in-out;
             }}
 
             /* BOUTON */
@@ -58,9 +60,59 @@ def accueil():
                 margin-top: 1rem;
                 cursor: pointer;
                 transition: all 0.3s ease;
+                animation: fadeInButton 5s ease-in-out;
             }}
             .custom-btn:hover {{
                 background: linear-gradient(45deg, #76f2b0, #6e7dff);
+            }}
+
+            /* ANIMATION FADE IN */
+            @keyframes fadeInTitle {{
+                0% {{ opacity: 0; transform: translateY(-50px); }}
+                100% {{ opacity: 1; transform: translateY(0); }}
+            }}
+            @keyframes fadeInSubTitle {{
+                0% {{ opacity: 0; transform: translateY(50px); }}
+                100% {{ opacity: 1; transform: translateY(0); }}
+            }}
+            @keyframes fadeInButton {{
+                0% {{ opacity: 0; transform: scale(0.8); }}
+                100% {{ opacity: 1; transform: scale(1); }}
+            }}
+
+            /* SECTION SUPPLÉMENTAIRE */
+            .impression-section {{
+                background-color: #F0F4F8;
+                padding: 3rem 0;
+                text-align: center;
+                animation: slideInUp 2s ease-in-out;
+            }}
+            .impression-section h2 {{
+                font-size: 3rem;
+                color: #1e3a8a;
+                margin-bottom: 2rem;
+            }}
+            .impression-section p {{
+                font-size: 1.5rem;
+                color: #334155;
+                margin-bottom: 2rem;
+            }}
+            .impression-section .highlight-btn {{
+                padding: 12px 30px;
+                font-size: 1.3rem;
+                color: white;
+                background: #2e77d0;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }}
+            .impression-section .highlight-btn:hover {{
+                background: #1a5fa4;
+            }}
+            @keyframes slideInUp {{
+                0% {{ opacity: 0; transform: translateY(50px); }}
+                100% {{ opacity: 1; transform: translateY(0); }}
             }}
         </style>
 
@@ -72,8 +124,14 @@ def accueil():
             </p>
             <button class="custom-btn">Découvrir la Technologie</button>
         </div>
+
+        <!-- SECTION IMPRESSIONNANTE -->
+        <div class="impression-section">
+            <h2>Un Futur Prometteur avec l'IA</h2>
+            <p>Notre plateforme révolutionne l'approche diagnostique et thérapeutique des cancers digestifs, en vous offrant des prédictions de survie précises et des solutions innovantes basées sur l'intelligence artificielle.</p>
+            <button class="highlight-btn">Explorez Notre Solution</button>
+        </div>
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     accueil()
-
