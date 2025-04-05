@@ -7,6 +7,7 @@ import numpy as np
 from tensorflow.keras.models import load_model as tf_load_model
 import streamlit as st
 import plotly.express as px
+from onglets.modelisation import modelisation
 
 # --- Patch scikit-learn pour éviter l'erreur 'sklearn_tags' ---
 try:
