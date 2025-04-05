@@ -11,5 +11,6 @@ plotly
 Pillow
 fpdf2
 #psycopg2
+psycopg2-binary
 smtplib
 #email-validator
