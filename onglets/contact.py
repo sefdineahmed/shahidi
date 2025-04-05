@@ -95,7 +95,6 @@ def contact():
             padding: 2rem;
             background: url("assets/team.jpeg");
             border-radius: 16px;
-            
         }
         
         .form-card {
@@ -243,9 +242,9 @@ def contact():
                     <div>
                         <h4 style="margin: 0; color: var(--secondary);">Réseaux Sociaux</h4>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                            <a href="#" style="color: var(--primary); text-decoration: none;">📘</a>
-                            <a href="#" style="color: var(--primary); text-decoration: none;">💼</a>
-                            <a href="#" style="color: var(--primary); text-decoration: none;">📷</a>
+                            <a href="https://www.linkedin.com" target="_blank" style="color: #0A66C2; font-weight: bold; text-decoration: none;">LinkedIn</a>
+                            <a href="https://www.twitter.com" target="_blank" style="color: #1DA1F2; font-weight: bold; text-decoration: none;">Twitter</a>
+                            <a href="https://www.facebook.com" target="_blank" style="color: #1877F2; font-weight: bold; text-decoration: none;">Facebook</a>
                         </div>
                     </div>
                 </div>
