@@ -289,8 +289,25 @@ def contact():
     
 
     
-    st.markdown("""
-        <div class="footer">
+ st.markdown("""
+    <style>
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #f0f8ff;
+            border-top: 2px solid #ddd;
+            font-size: 14px;
+            color: #333;
+        }
+        .footer a {
+            color: #2e77d0;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <div class="footer">
         <p>
             © 2025 <strong>MED-AI</strong> | Propulsé avec ❤️ par <strong>Sefdine</strong><br>
             Connectez-vous avec moi :
@@ -298,7 +315,9 @@ def contact():
             <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon">🐦 Twitter</a>
             <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" class="footer-icon">📘 Facebook</a>
         </p>
-    </div> """, unsafe_allow_html=True)
+    </div>
+""", unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     contact()
