@@ -286,10 +286,8 @@ def contact():
                 </iframe>
             </div>
         """, unsafe_allow_html=True)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    st.markdown(----)
+    
+
     
     st.markdown("""
         <div class="footer">
