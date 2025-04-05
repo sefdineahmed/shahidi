@@ -5,7 +5,7 @@ from datetime import date
 import io  
 from fpdf import FPDF  
 from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient, MODELS  
-  
+
 # Style CSS personnalisé  
 st.markdown("""  
 <style>  
@@ -48,42 +48,42 @@ st.markdown("""
     }  
 </style>  
 """, unsafe_allow_html=True)  
-  
+
 def generate_pdf_report(input_data, model_name, cleaned_pred):  
     pdf = FPDF()  
     pdf.add_page()  
     pdf.set_font('Arial', 'B', 24)  
     pdf.set_text_color(46, 119, 208)  
     pdf.cell(0, 15, "Rapplet Médical MED-AI", ln=True, align='C')  
-  
+
     pdf.set_font('Arial', '', 12)  
     pdf.set_text_color(0, 0, 0)  
     pdf.cell(0, 10, f"Date : {date.today().strftime('%d/%m/%Y')}", ln=True)  
-  
+
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Paramètres Cliniques", ln=True)  
     pdf.set_fill_color(240, 248, 255)  
-  
+
     pdf.set_font('Arial', '', 12)  
     col_widths = [60, 60]  
     for key, value in input_data.items():  
         pdf.cell(col_widths[0], 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
         pdf.cell(col_widths[1], 8, str(value), 1, 1, 'L')  
-  
+
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
     pdf.set_font('Arial', '', 14)  
     pdf.cell(0, 8, f"Modèle utilisé : {model_name}", ln=True)  
     pdf.set_text_color(46, 119, 208)  
     pdf.cell(0, 8, f"Survie médiane estimée : {cleaned_pred:.1f} mois", ln=True)  
-  
+
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
-  
+
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
-  
+
     with st.container():  
         st.markdown("<div class='header-card'>", unsafe_allow_html=True)  
         st.subheader("📋 Profil Patient")  
@@ -106,29 +106,29 @@ def modelisation():
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
-  
+
     input_df = encode_features(inputs)  
     model_name = st.selectbox(  
         "🧠 Sélection du Modèle d'IA",   
         list(MODELS.keys()),  
         help="Choisir l'algorithme de prédiction"  
     )  
-  
+
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
                 model = load_model(MODELS[model_name])  
                 pred = predict_survival(model, input_df, model_name)  
                 cleaned_pred = clean_prediction(pred, model_name)  
-  
-                # 🔁 Enrichir les données à enregistrer  
+
+                # Enrichir les données à enregistrer  
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
-  
-                # 💾 Enregistrement automatique du patient  
+
+                # 💾 Enregistrement automatique du patient et réentraînement du modèle
                 save_new_patient(patient_data)  
-  
+
                 with st.container():  
                     st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
                     col1, col2 = st.columns([1, 2])  
@@ -148,7 +148,7 @@ def modelisation():
                         )  
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
-  
+
                     # 📥 Rapport PDF avec les infos complètes  
                     pdf_bytes = generate_pdf_report(  
                         patient_data,  
@@ -164,7 +164,7 @@ def modelisation():
                     )  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
-  
+
     # 🩺 Suivi thérapeutique  
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
@@ -181,12 +181,12 @@ def modelisation():
                 value=date.today(),  
                 help="Date préconisée pour le prochain examen"  
             )  
-  
+
         if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
             if selected_treatments:  
                 st.toast("Plan de traitement enregistré avec succès !")  
             else:  
                 st.warning("Veuillez sélectionner au moins un traitement")  
-  
+
 if __name__ == "__main__":  
     modelisation()
