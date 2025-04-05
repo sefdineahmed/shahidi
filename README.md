@@ -24,8 +24,6 @@ C'est une application interactive développée avec **Streamlit** permettant d'e
 
 ---
 
----
-
 ## 🔧 **Installation et exécution**
 ### 1️⃣ Cloner le projet
 ```bash
