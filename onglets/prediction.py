@@ -6,6 +6,11 @@ import io
 from fpdf import FPDF
 from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient
 
+# Définir les modèles disponibles (dans ce cas, seulement DeepSurv)
+MODELS = {
+    "DeepSurv": "models/deepsurv.keras"
+}
+
 # Style CSS personnalisé
 st.markdown("""
 <style>
