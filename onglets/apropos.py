@@ -123,7 +123,7 @@ def a_propos():
                 """
                 <style>
                     .image-container img {
-                        height: 300px;  /* Ajuste la hauteur de l'image ici */
+                        height: 50px;  /* Ajuste la hauteur de l'image ici */
                         object-fit: contain; /* Maintient l'aspect ratio de l'image */
                     }
                 </style>
