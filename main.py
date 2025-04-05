@@ -3,7 +3,7 @@ from onglets import accueil, analyse_descriptive, modelisation, a_propos, contac
 
 # Configuration de la page
 st.set_page_config(
-    page_title="MOYO",
+    page_title="Ushahidi",
     page_icon="⚕️",
     layout="wide",
     initial_sidebar_state="expanded"
