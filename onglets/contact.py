@@ -72,7 +72,7 @@ def validate_email(email):
     return re.match(pattern, email)
 
 def contact():
-    """Interface de contact professionnelle"""
+    """Interface de contact professionnelle avec style modernisé et liens vers réseaux sociaux"""
     
     st.markdown(
         """
@@ -87,21 +87,20 @@ def contact():
             max-width: 1000px;
             margin: 2rem auto;
             padding: 0 1rem;
+            font-family: 'Segoe UI', sans-serif;
         }
         
         .contact-header {
             text-align: center;
             margin-bottom: 3rem;
             padding: 2rem;
-            background: url("assets/team.jpeg");
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             border-radius: 16px;
-            color: white;
+            color: #fff;
         }
         
         .form-card {
-            background: #ffffff;
+            background: #f8faff;
             padding: 2.5rem;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.05);
@@ -142,7 +141,6 @@ def contact():
             border-radius: 10px !important;
             font-size: 1.1rem !important;
             transition: transform 0.3s, box-shadow 0.3s !important;
-            border: none;
         }
         
         .submit-btn:hover {
@@ -172,21 +170,6 @@ def contact():
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.05);
             margin-top: 2rem;
-        }
-        
-        /* Style pour la section Réseaux Sociaux */
-        .social-links a {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 1.2rem;
-            color: var(--primary);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .social-links a:hover {
-            color: var(--secondary);
         }
     </style>
     """, unsafe_allow_html=True)
@@ -260,10 +243,10 @@ def contact():
                     <div style="margin-right: 1rem;">🌐</div>
                     <div>
                         <h4 style="margin: 0; color: var(--secondary);">Réseaux Sociaux</h4>
-                        <div class="social-links" style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                            <a href="#" target="_blank">🔗 LinkedIn</a>
-                            <a href="#" target="_blank">🐦 Twitter</a>
-                            <a href="#" target="_blank">📘 Facebook</a>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                            <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🔗 LinkedIn</a>
+                            <a href="https://twitter.com/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🐦 Twitter</a>
+                            <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" style="color: var(--primary); text-decoration: none;">📘 Facebook</a>
                         </div>
                     </div>
                 </div>
