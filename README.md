@@ -17,7 +17,7 @@ C'est une application interactive développée avec **Streamlit** permettant d'e
 - **Python**
 - **Streamlit** pour l'interface utilisateur
 - **Pandas** pour la gestion des données
-- **Scikit-learn & Joblib** pour le chargement des modèles de machine learning
+- **Scikit-learn, Scikit-survival & Joblib** pour le chargement des modèles de machine learning
 - **TensorFlow/Keras** pour les modèles de deep learning
 - **Lifelines** pour l'analyse de survie (modèle de Cox)
 - **Plotly** pour la visualisation des données
@@ -44,7 +44,6 @@ streamlit run main.py
 ```
 
 ---
-
 ## 🎯 **Modèles de prédiction**
 - **DeepSurv (réseau de neurones)**
 ---
