@@ -11,6 +11,7 @@ def get_base64_bg(path):
     return f"data:image/jpeg;base64,{encoded}"
 
 def a_propos():
+    # Convertir l'image du logo en base64 pour l'utiliser comme background
     bg_image = get_base64_bg(LOGO_PATH)
 
     # Section HERO avec le style inspiré de "accueil"
@@ -52,9 +53,6 @@ def a_propos():
     """, unsafe_allow_html=True)
 
     # ---------------------------------
-    # Les autres sections restent inchangées
-    # ---------------------------------
-
     # Section Statistiques Clés
     st.markdown("### Principaux Indicateurs Épidémiologiques")
     cols = st.columns(3)
@@ -118,26 +116,25 @@ def a_propos():
     # Section Analyse des Performances
     st.markdown("## Analyse des Performances", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
- 
-   with col1:
-    try:
-        st.markdown(
-            """
-            <style>
-                .image-container img {
-                    height: 300px;  /* Ajuste la hauteur de l'image ici */
-                    object-fit: contain; /* Maintient l'aspect ratio de l'image */
-                }
-            </style>
-            """, unsafe_allow_html=True
-        )
-        st.markdown('<div class="image-container">', unsafe_allow_html=True)
-        st.image("assets/ibs_curve.jpeg", caption="Courbe IBS - Comparaison des modèles", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Erreur de chargement de l'image : {str(e)}")
-
     
+    with col1:
+        try:
+            st.markdown(
+                """
+                <style>
+                    .image-container img {
+                        height: 300px;  /* Ajuste la hauteur de l'image ici */
+                        object-fit: contain; /* Maintient l'aspect ratio de l'image */
+                    }
+                </style>
+                """, unsafe_allow_html=True
+            )
+            st.markdown('<div class="image-container">', unsafe_allow_html=True)
+            st.image("assets/ibs_curve.jpeg", caption="Courbe IBS - Comparaison des modèles", use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Erreur de chargement de l'image : {str(e)}")
+
     with col2:
         st.markdown("""
         <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px;">
