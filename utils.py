@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import tensorflow as tf
+import numpy as np
 from tensorflow.keras.models import load_model as tf_load_model
 import streamlit as st
 import plotly.express as px
@@ -24,7 +25,10 @@ LOGO_PATH = "assets/background.jpeg"
 
 # Configuration des modèles
 MODELS = {
+    "Cox PH": "models/coxph.joblib",
+    "RSF": "models/rsf.joblib",
     "DeepSurv": "models/deepsurv.keras",
+    "GBST": "models/gbst.joblib"
 }
 
 # Configuration des variables
@@ -43,6 +47,34 @@ FEATURE_CONFIG = {
     "Adenopathie": "Adénopathie",
 }
 
+# Définition des membres de l'équipe
+TEAM_MEMBERS = [
+    {
+        "name": "Pr. Aba Diop",
+        "Etablissement" : "Université Alioune Diop de Bamby",
+        "role": "Maître de Conférences",
+        "email": "aba.diop@example.com",
+        "linkedin": "https://linkedin.com/in/abadiop",
+        "photo": "assets/team/aba.jpeg"
+    },
+    {
+        "name": "PhD. Idrissa Sy",
+        "Etablissement" : "Université Alioune Diop de Bamby",
+        "role": "Enseignant Chercheur",
+        "email": "idrissa.sy@example.com",
+        "linkedin": "https://linkedin.com/in/idrissasy",
+        "photo": "assets/team/sy.jpeg"
+    },
+    {
+        "name": "M. Ahmed Sefdine",
+        "Etablissement" : "Université Alioune Diop de Bamby",
+        "role": "Étudiant",
+        "email": "ahmed.sefdine@example.com",
+        "linkedin": "https://linkedin.com/in/sefdineahmed",
+        "photo": "assets/team/sefdine.jpeg"
+    }
+]
+
 # Fonctions utilitaires
 
 @st.cache_data(show_spinner=False)
@@ -59,25 +91,40 @@ def load_model(model_path):
     """
     Charge un modèle pré-entraîné.
     Pour les modèles Keras (.keras ou .h5) on utilise tf.keras.models.load_model.
+    Pour les autres, joblib.load.
     """
     if not os.path.exists(model_path):
         st.error(f"❌ Modèle introuvable : {model_path}")
         return None
-    return tf_load_model(model_path)
+
+    try:
+        _, ext = os.path.splitext(model_path)
+        if ext in ['.keras', '.h5']:
+            def cox_loss(y_true, y_pred):
+                event = tf.cast(y_true[:, 0], dtype=tf.float32)
+                risk = y_pred[:, 0]
+                log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+                loss = -tf.reduce_mean((risk - log_risk) * event)
+                return loss
+            return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
+        else:
+            return joblib.load(model_path)
+    except Exception as e:
+        st.error(f"❌ Erreur lors du chargement du modèle : {e}")
+        return None
 
 def encode_features(inputs):
     """
     Encode les variables.
     Pour 'AGE', on conserve la valeur numérique.
-    Pour les autres, "OUI" devient "NON" et toute autre valeur devient "OUI".
+    Pour les autres, "OUI" devient 1 et toute autre valeur 0.
     """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
             encoded[k] = v
         else:
-            # Inverser la logique ici : "OUI" devient "NON" et "NON" devient "OUI"
-            encoded[k] = "NON" if v.upper() == "OUI" else "OUI"
+            encoded[k] = 1 if v.upper() == "OUI" else 0
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data, model_name):
@@ -107,49 +154,23 @@ def clean_prediction(prediction, model_name):
         pred_val = float(prediction)
     except Exception:
         pred_val = 0
-    if model_name == "DeepSurv":
+    if model_name in ["Cox PH", "RSF", "GBST"]:
+        return max(pred_val, 0)
+    elif model_name == "DeepSurv":
         return max(pred_val, 1)
-    return pred_val
-
-def retrain_deepsurv_model(df, model_path=MODELS["DeepSurv"]):
-    """
-    Réentraîne le modèle DeepSurv avec les nouvelles données.
-    """
-    model = load_model(model_path)
-    if model is None:
-        st.error("❌ Le modèle DeepSurv est introuvable.")
-        return None
-
-    # Exemple d'ajustement: prédiction sur les nouvelles données pour DeepSurv
-    # Divisez vos données en features et cible
-    X = df[FEATURE_CONFIG.keys()]  # Modifiez ceci selon vos colonnes de caractéristiques
-    y = df['survival_time']  # Assurez-vous que vous avez la colonne de durée de survie
-    event = df['event']  # Assurez-vous que vous avez la colonne d'événements (1 pour événement, 0 pour censuré)
-
-    # Apprentissage sur les nouvelles données
-    model.fit(X, y, event, epochs=10, batch_size=32, verbose=1)
-
-    # Sauvegarde du modèle mis à jour
-    model.save(model_path)
-    st.success("✅ Le modèle DeepSurv a été réentraîné avec succès.")
-    return model
+    else:
+        return pred_val
 
 def save_new_patient(new_patient_data):
     """
-    Enregistre les informations d'un nouveau patient dans le fichier Excel et réentraîne le modèle.
+    Enregistre les informations d'un nouveau patient dans le fichier Excel.
     """
     df = load_data()
     new_df = pd.DataFrame([new_patient_data])
     df = pd.concat([df, new_df], ignore_index=True)
-    
     try:
-        # Sauvegarde des nouvelles données dans le fichier
         df.to_excel(DATA_PATH, index=False)
         st.success("Les informations du nouveau patient ont été enregistrées.")
-        
-        # Réentraîner le modèle avec les nouvelles données
-        retrain_deepsurv_model(df)
-        
-        load_data.clear()  # Nettoyer le cache des données
+        load_data.clear()
     except Exception as e:
         st.error(f"Erreur lors de l'enregistrement des données : {e}")
