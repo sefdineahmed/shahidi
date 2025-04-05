@@ -138,30 +138,21 @@ def modelisation():
                             value=f"{cleaned_pred:.0f} mois",  
                             help="Durée médiane de survie prédite"  
                         )  
-                    with col2:  
-                        months = min(int(cleaned_pred), 120)  
-                        fig = px.line(  
-                            x=list(range(months)),  
-                            y=[100 - (i / months) * 100 for i in range(months)],  
-                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},  
-                            color_discrete_sequence=['#2e77d0']  
-                        )  
-                        st.plotly_chart(fig, use_container_width=True)  
-                    st.markdown("</div>", unsafe_allow_html=True)  
-  
-                    # 📥 Rapport PDF avec les infos complètes  
-                    pdf_bytes = generate_pdf_report(  
+                    with col2: 
+                      st.metric(
+                        pdf_bytes = generate_pdf_report(  
                         patient_data,  
                         model_name,  
-                        cleaned_pred  
-                    )  
+                        cleaned_pred
+                        )  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
                         data=pdf_bytes,  
                         file_name="rapport_medical.pdf",  
                         mime="application/pdf",  
                         use_container_width=True  
-                    )  
+                    )
+                      )
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
