@@ -1,9 +1,10 @@
+from PIL import Image
 import streamlit as st
 import os
 import base64
-from utils import LOGO_PATH, TEAM_MEMBERS  # On récupère le chemin du fond et la liste des membres
+from utils import LOGO_PATH  # On récupère le chemin défini dans utils.py
 
-# Fonction pour convertir une image en base64 (obligatoire pour Streamlit)
+# Fonction pour convertir une image en base64 (utile pour le background)
 def get_base64_bg(path):
     with open(path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode()
@@ -11,194 +12,159 @@ def get_base64_bg(path):
 
 def a_propos():
     bg_image = get_base64_bg(LOGO_PATH)
-    # CSS personnalisé intégrant le style du fond et les profils d'équipe
+
+    # Section HERO avec le style inspiré de "accueil"
     st.markdown(f"""
         <style>
-            /* Fond de page personnalisé */
-            body {{
+            .custom-bg {{
                 background-image: url("{bg_image}");
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-            }}
-            /* Superposition pour une meilleure lisibilité */
-            .overlay {{
-                background: rgba(0, 0, 0, 0.6);
+                height: 80vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
                 padding: 2rem;
                 border-radius: 10px;
-                margin: 2rem 0;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
             }}
-            /* Titres */
-            h1, h2, h3 {{
-                color: #ffffff;
-                text-align: center;
-            }}
-            /* Paragraphe */
-            p, li {{
-                color: #d1d5db;
-            }}
-            /* Cartes de statistiques et performance */
-            .data-card {{
-                background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 10px;
-                text-align: center;
-                margin-bottom: 1rem;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            }}
-            /* Tableau de performance */
-            .performance-table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 1rem;
-            }}
-            .performance-table th, .performance-table td {{
-                border: 1px solid rgba(255,255,255,0.3);
-                padding: 0.75rem;
-                text-align: center;
-            }}
-            .performance-table th {{
-                background-color: rgba(255,255,255,0.2);
-            }}
-            .highlight {{
-                background-color: rgba(46, 119, 208, 0.6);
+
+            .main-title {{
+                font-size: 3rem;
                 font-weight: bold;
+                color: #ffffff;
+                margin-bottom: 1rem;
             }}
-            /* Profil équipe */
-            .team-card {{
-                background: rgba(255, 255, 255, 0.2);
-                padding: 1rem;
-                border-radius: 10px;
-                text-align: center;
-                margin: 1rem;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            }}
-            .team-photo {{
-                width: 100%;
-                height: 220px;
-                border-radius: 10px;
-                object-fit: cover;
-                border: 3px solid #2e77d0;
-                margin-bottom: 0.5rem;
-            }}
-            .metric-badge {{
-                background-color: #2e77d0;
-                color: #fff;
-                padding: 6px 12px;
-                border-radius: 20px;
-                display: inline-block;
-                margin-top: 10px;
-                font-size: 0.85rem;
+
+            .sub-title {{
+                font-size: 1.5rem;
+                color: #ffffff;
             }}
         </style>
+
+        <div class="custom-bg">
+            <h1 class="main-title">🩺 Prévision du Temps de Survie du Cancer Gastrique</h1>
+            <p class="sub-title">L'intelligence artificielle au service de l'oncologie clinique au Sénégal.</p>
+        </div>
     """, unsafe_allow_html=True)
 
-    with st.container():
-        # Section Héro
-        st.markdown("""
-            <div class="overlay">
-                <h1>🩺 Prévision du Temps de Survie du Cancer Gastrique</h1>
-                <p style="font-size:1.2rem;">
-                    L'intelligence artificielle au service de l'oncologie clinique au Sénégal.
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
+    # ---------------------------------
+    # Les autres sections restent inchangées
+    # ---------------------------------
 
-        # Section Statistiques Clés
-        st.markdown("<div class='overlay'><h2>Principaux Indicateurs Épidémiologiques</h2></div>", unsafe_allow_html=True)
-        cols = st.columns(3)
-        stats = [
-            {"icon": "🕒", "value": "58%", "label": "Survie à 5 ans"},
-            {"icon": "📈", "value": "1200+", "label": "Cas annuels"},
-            {"icon": "🎯", "value": "89%", "label": "Précision du modèle"}
-        ]
-        for col, stat in zip(cols, stats):
-            with col:
-                st.markdown(f"""
-                <div class="data-card">
-                    <div style="font-size: 2.5rem;">{stat['icon']}</div>
-                    <div style="font-size: 2.2rem; font-weight: 700;">{stat['value']}</div>
-                    <div style="font-size: 1rem;">{stat['label']}</div>
+    # Section Statistiques Clés
+    st.markdown("### Principaux Indicateurs Épidémiologiques")
+    cols = st.columns(3)
+    stats = [
+        {"icon": "🕒", "value": "58%", "label": "Survie à 5 ans"},
+        {"icon": "📈", "value": "1200+", "label": "Cas annuels"},
+        {"icon": "🎯", "value": "89%", "label": "Précision du modèle"}
+    ]
+    for col, stat in zip(cols, stats):
+        with col:
+            st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px; text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">{stat['icon']}</div>
+                <div style="font-size: 2.2rem; font-weight: 700; color: #0f172a;">
+                    {stat['value']}
                 </div>
-                """, unsafe_allow_html=True)
+                <div style="color: #334155; font-size: 1rem;">
+                    {stat['label']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # Section Performance des Modèles
-        st.markdown("<div class='overlay'><h2>Performance des Modèles</h2></div>", unsafe_allow_html=True)
+    # Section Performance des Modèles
+    st.markdown("## Performance des Modèles", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Modèle</th>
+                    <th style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">C-index</th>
+                    <th style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">IBS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Random Survival Forest</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.84</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.077</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Cox PH</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.85</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.080</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Gradient Boosting</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.87</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.085</td>
+                </tr>
+                <tr style="background-color: #d1fae5; font-weight: bold;">
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Deep Survival</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.92</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.044</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Section Analyse des Performances
+    st.markdown("## Analyse des Performances", unsafe_allow_html=True)
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        try:
+            st.image("assets/ibs_curve.jpeg", 
+                     caption="Courbe IBS - Comparaison des modèles",
+                     use_container_width=True)
+        except Exception as e:
+            st.error(f"Erreur de chargement de l'image : {str(e)}")
+    
+    with col2:
         st.markdown("""
-        <div class="data-card">
-            <table class="performance-table">
-                <thead>
-                    <tr>
-                        <th>Modèle</th>
-                        <th>C-index</th>
-                        <th>IBS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Random Survival Forest</td>
-                        <td>0.84</td>
-                        <td>0.077</td>
-                    </tr>
-                    <tr>
-                        <td>Cox PH</td>
-                        <td>0.85</td>
-                        <td>0.080</td>
-                    </tr>
-                    <tr>
-                        <td>Gradient Boosting</td>
-                        <td>0.87</td>
-                        <td>0.085</td>
-                    </tr>
-                    <tr class="highlight">
-                        <td>Deep Survival</td>
-                        <td>0.92</td>
-                        <td>0.044</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px;">
+            <h3>Interprétation des Résultats</h3>
+            <ul style="line-height: 1.8;">
+                <li>📉 Meilleure performance du modèle Deep Survival</li>
+                <li>⏱ Stabilité temporelle des prédictions</li>
+                <li>🎯 Faible erreur intégrée (IBS)</li>
+            </ul>
+            <div style="background-color: #2e77d0; color: #fff; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 0.85rem;">
+                🔬 Validation croisée (k=10)
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Section Analyse des Performances
-        st.markdown("<div class='overlay'><h2>Analyse des Performances</h2></div>", unsafe_allow_html=True)
-        col1, col2 = st.columns([2, 1])
-        with col1:
+    # Section Équipe de Recherche
+    st.markdown("## Équipe de Recherche", unsafe_allow_html=True)
+    cols = st.columns(3)
+    team_members = [
+        {"photo": "assets/team/aba.jpeg", "name": "Pr. Aba Diop", "role": "Épidémiologiste"},
+        {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Data Scientist"},
+        {"photo": "assets/team/sefdine.jpeg", "name": "Ahmed Sefdine", "role": "Ingénieur Biomédical"}
+    ]
+    
+    for col, member in zip(cols, team_members):
+        with col:
             try:
-                st.image("assets/ibs_curve.jpeg", caption="Courbe IBS - Comparaison des modèles", use_container_width=True)
-            except Exception as e:
-                st.error(f"Erreur de chargement de l'image : {str(e)}")
-        with col2:
-            st.markdown("""
-                <div class="data-card">
-                    <h3>Interprétation des Résultats</h3>
-                    <ul style="line-height: 1.8;">
-                        <li>📉 Meilleure performance du modèle Deep Survival</li>
-                        <li>⏱ Stabilité temporelle des prédictions</li>
-                        <li>🎯 Faible erreur intégrée (IBS)</li>
-                    </ul>
-                    <div class="metric-badge">🔬 Validation croisée (k=10)</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # Section Équipe Scientifique
-        st.markdown("<div class='overlay'><h2>Équipe de Recherche</h2></div>", unsafe_allow_html=True)
-        cols = st.columns(3)
-        # On parcourt TEAM_MEMBERS (défini dans utils.py) pour afficher les profils
-        for member in TEAM_MEMBERS:
-            with cols.pop(0) if cols else st.columns(3)[0]:
                 st.markdown(f"""
-                    <div class="team-card">
-                        <img src="{member['photo']}" class="team-photo" alt="{member['name']}">
-                        <h3>{member['name']}</h3>
-                        <p>{member['role']}</p>
-                        <div>
-                            <span class="metric-badge">{member.get('Etablissement', 'CHU Dakar')}</span>
-                        </div>
+                <div style="background: rgba(255,255,255,0.8); text-align: center; padding: 1rem; border-radius: 10px; margin-top: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                    <img src="{member['photo']}" style="width: 100%; border-radius: 10px; height: 220px; object-fit: cover; border: 3px solid #2e77d0;" alt="{member['name']}">
+                    <h3 style="margin: 0.5rem 0; color: #0f172a;">{member['name']}</h3>
+                    <p style="margin: 0; color: #334155;">{member['role']}</p>
+                    <div style="background-color: #2e77d0; color: #fff; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 0.85rem;">
+                        🏥 CHU Dakar
                     </div>
+                </div>
                 """, unsafe_allow_html=True)
-        # Réorganisation des colonnes si le nombre de membres dépasse celui de la première rangée
-        # Vous pouvez également ajuster la mise en page en fonction du nombre de membres.
-        
+            except Exception as e:
+                st.error(f"Erreur d'affichage du profil : {str(e)}")
+
 if __name__ == "__main__":
     a_propos()
