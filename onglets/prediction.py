@@ -117,16 +117,17 @@ def modelisation():
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
-                model = load_model(MODELS[model_name])  
-                pred = predict_survival(model, input_df, model_name)  
-                cleaned_pred = clean_prediction(pred, model_name)  
+                # Charger le modèle DeepSurv
+                model = load_model(MODELS["DeepSurv"])  
+                pred = predict_survival(model, input_df)  
+                cleaned_pred = clean_prediction(pred)  
   
-                # 🔁 Enrichir les données à enregistrer  
+                # Enrichir les données à enregistrer
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
   
-                # 💾 Enregistrement automatique du patient  
+                # Enregistrement automatique du patient  
                 save_new_patient(patient_data)  
   
                 with st.container():  
@@ -138,21 +139,30 @@ def modelisation():
                             value=f"{cleaned_pred:.0f} mois",  
                             help="Durée médiane de survie prédite"  
                         )  
-                    with col2: 
-                      st.metric(
-                        pdf_bytes = generate_pdf_report(  
+                    with col2:  
+                        months = min(int(cleaned_pred), 120)  
+                        fig = px.line(  
+                            x=list(range(months)),  
+                            y=[100 - (i / months) * 100 for i in range(months)],  
+                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},  
+                            color_discrete_sequence=['#2e77d0']  
+                        )  
+                        st.plotly_chart(fig, use_container_width=True)  
+                    st.markdown("</div>", unsafe_allow_html=True)  
+  
+                    # 📥 Rapport PDF avec les infos complètes  
+                    pdf_bytes = generate_pdf_report(  
                         patient_data,  
                         model_name,  
-                        cleaned_pred
-                        )  
+                        cleaned_pred  
+                    )  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
                         data=pdf_bytes,  
                         file_name="rapport_medical.pdf",  
                         mime="application/pdf",  
                         use_container_width=True  
-                    )
-                      )
+                    )  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
