@@ -126,7 +126,7 @@ def modelisation():
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
   
-                # 💾 Enregistrement automatique du patient dans la base de données  
+                # 💾 Enregistrement automatique du patient  
                 save_new_patient(patient_data)  
   
                 with st.container():  
@@ -138,7 +138,7 @@ def modelisation():
                             value=f"{cleaned_pred:.0f} mois",  
                             help="Durée médiane de survie prédite"  
                         )  
-                    with col2: 
+                    with col2:  
                         months = min(int(cleaned_pred), 120)  
                         fig = px.line(  
                             x=list(range(months)),  
@@ -161,7 +161,7 @@ def modelisation():
                         file_name="rapport_medical.pdf",  
                         mime="application/pdf",  
                         use_container_width=True  
-                    )
+                    )  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
