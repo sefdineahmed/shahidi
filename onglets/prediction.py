@@ -1,12 +1,22 @@
-import streamlit as st  
-import numpy as np  
-import plotly.express as px  
-from datetime import date  
-import io  
-from fpdf import FPDF  
-from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient, MODELS  
+import streamlit as st
+import numpy as np
+import plotly.express as px
+from datetime import date
+import io
+from fpdf import FPDF
+from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient, MODELS
+import tensorflow as tf
 
-# Style CSS personnalisé  
+# Enregistrer la fonction de perte customisée pour DeepSurv
+@tf.keras.utils.register_keras_serializable(package='Custom')
+def cox_loss(y_true, y_pred):
+    event = tf.cast(y_true[:, 0], dtype=tf.float32)
+    risk = y_pred[:, 0]
+    log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+    loss = -tf.reduce_mean((risk - log_risk) * event)
+    return loss
+
+# Style CSS personnalisé
 st.markdown("""  
 <style>  
     :root {  
@@ -47,8 +57,9 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(46, 119, 208, 0.4) !important;  
     }  
 </style>  
-""", unsafe_allow_html=True)  
+""", unsafe_allow_html=True)
 
+# Fonction pour générer un rapport PDF
 def generate_pdf_report(input_data, model_name, cleaned_pred):  
     pdf = FPDF()  
     pdf.add_page()  
@@ -79,8 +90,9 @@ def generate_pdf_report(input_data, model_name, cleaned_pred):
 
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
-    return pdf_buffer.getvalue()  
+    return pdf_buffer.getvalue()
 
+# Fonction principale pour l'onglet de prédiction
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
 
@@ -121,12 +133,12 @@ def modelisation():
                 pred = predict_survival(model, input_df, model_name)  
                 cleaned_pred = clean_prediction(pred, model_name)  
 
-                # Enrichir les données à enregistrer  
+                # Enregistrer le nouveau patient et réentraîner le modèle
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
 
-                # 💾 Enregistrement automatique du patient et réentraînement du modèle
+                # Sauvegarder automatiquement le patient et réentraîner le modèle
                 save_new_patient(patient_data)  
 
                 with st.container():  
@@ -149,7 +161,7 @@ def modelisation():
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
 
-                    # 📥 Rapport PDF avec les infos complètes  
+                    # Télécharger le rapport PDF
                     pdf_bytes = generate_pdf_report(  
                         patient_data,  
                         model_name,  
@@ -163,7 +175,7 @@ def modelisation():
                         use_container_width=True  
                     )  
             except Exception as e:  
-                st.error(f"Erreur de prédiction : {str(e)}")  
+                st.error(f"Erreur de prédiction : {str(e)}")
 
     # 🩺 Suivi thérapeutique  
     st.markdown("---")  
