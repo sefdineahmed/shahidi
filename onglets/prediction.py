@@ -4,8 +4,16 @@ import plotly.express as px
 from datetime import date  
 import io  
 from fpdf import FPDF  
-from utils import FEATURE_CONFIG, encode_features, load_model, predict_survival, clean_prediction, save_new_patient, MODELS  
-  
+from utils import (
+    FEATURE_CONFIG,
+    encode_features,
+    load_model,
+    predict_survival,
+    clean_prediction,
+    save_new_patient,
+    MODELS
+)
+
 # Style CSS personnalisé  
 st.markdown("""  
 <style>  
@@ -48,13 +56,13 @@ st.markdown("""
     }  
 </style>  
 """, unsafe_allow_html=True)  
-  
-def generate_pdf_report(input_data, model_name, cleaned_pred):  
+
+def generate_pdf_report(input_data, cleaned_pred):  
     pdf = FPDF()  
     pdf.add_page()  
     pdf.set_font('Arial', 'B', 24)  
     pdf.set_text_color(46, 119, 208)  
-    pdf.cell(0, 15, "Rapplet Médical MED-AI", ln=True, align='C')  
+    pdf.cell(0, 15, "Rapport Médical MED-AI", ln=True, align='C')  
   
     pdf.set_font('Arial', '', 12)  
     pdf.set_text_color(0, 0, 0)  
@@ -73,7 +81,7 @@ def generate_pdf_report(input_data, model_name, cleaned_pred):
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
     pdf.set_font('Arial', '', 14)  
-    pdf.cell(0, 8, f"Modèle utilisé : {model_name}", ln=True)  
+    pdf.cell(0, 8, "Modèle utilisé : DeepSurv", ln=True)  
     pdf.set_text_color(46, 119, 208)  
     pdf.cell(0, 8, f"Survie médiane estimée : {cleaned_pred:.1f} mois", ln=True)  
   
@@ -108,26 +116,21 @@ def modelisation():
         st.markdown("</div>", unsafe_allow_html=True)  
   
     input_df = encode_features(inputs)  
-    model_name = st.selectbox(  
-        "🧠 Sélection du Modèle d'IA",   
-        list(MODELS.keys()),  
-        help="Choisir l'algorithme de prédiction"  
-    )  
-  
+    # Utilisation directe du modèle DeepSurv
+    model_name = "DeepSurv"  
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
-                # Charger le modèle DeepSurv
-                model = load_model(MODELS["DeepSurv"])  
+                model = load_model(MODELS[model_name])  
                 pred = predict_survival(model, input_df)  
                 cleaned_pred = clean_prediction(pred)  
   
-                # Enrichir les données à enregistrer
+                # Enrichissement des données à enregistrer  
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
-                patient_data["Deces"] = "OUI"  
+                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
   
-                # Enregistrement automatique du patient  
+                # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
                 save_new_patient(patient_data)  
   
                 with st.container():  
@@ -150,12 +153,8 @@ def modelisation():
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
   
-                    # 📥 Rapport PDF avec les infos complètes  
-                    pdf_bytes = generate_pdf_report(  
-                        patient_data,  
-                        model_name,  
-                        cleaned_pred  
-                    )  
+                    # Génération et téléchargement du rapport PDF  
+                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
                         data=pdf_bytes,  
@@ -166,7 +165,7 @@ def modelisation():
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
-    # 🩺 Suivi thérapeutique  
+    # Suivi thérapeutique  
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
         treatment_cols = st.columns(2)  
