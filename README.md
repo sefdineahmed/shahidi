@@ -24,17 +24,6 @@ C'est une application interactive développée avec **Streamlit** permettant d'e
 
 ---
 
-## 📁 **Structure du projet**
-```
-MOYO/
-│-- assets/               # Images et logos
-│-- data/                 # Fichiers de données (ex: data.xlsx)
-│-- models/               # Modèles entraînés (joblib, keras)
-│-- app.py                # Code principal de l'application
-│-- requirements.txt      # Dépendances du projet
-│-- README.md             # Documentation
-```
-
 ---
 
 ## 🔧 **Installation et exécution**
@@ -57,14 +46,7 @@ streamlit run main.py
 ---
 
 ## 🎯 **Modèles de prédiction**
-MOYO utilise plusieurs algorithmes pour estimer la survie des patients :
-- **Cox Proportionnal Hazards (Cox PH)**
-- **Random Survival Forest (RSF)**
 - **DeepSurv (réseau de neurones)**
-- **Gradient Boosted Survival Trees (GBST)**
-
-Les modèles sont pré-entraînés et stockés dans le dossier `models/`.
-
 ---
 
 ## 📬 **Contact**
