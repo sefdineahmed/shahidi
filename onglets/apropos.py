@@ -118,13 +118,25 @@ def a_propos():
     # Section Analyse des Performances
     st.markdown("## Analyse des Performances", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
-    with col1:
-        try:
-            st.image("assets/ibs_curve.jpeg", 
-                     caption="Courbe IBS - Comparaison des modèles",
-                     use_container_width=True)
-        except Exception as e:
-            st.error(f"Erreur de chargement de l'image : {str(e)}")
+ 
+   with col1:
+    try:
+        st.markdown(
+            """
+            <style>
+                .image-container img {
+                    height: 300px;  /* Ajuste la hauteur de l'image ici */
+                    object-fit: contain; /* Maintient l'aspect ratio de l'image */
+                }
+            </style>
+            """, unsafe_allow_html=True
+        )
+        st.markdown('<div class="image-container">', unsafe_allow_html=True)
+        st.image("assets/ibs_curve.jpeg", caption="Courbe IBS - Comparaison des modèles", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Erreur de chargement de l'image : {str(e)}")
+
     
     with col2:
         st.markdown("""
