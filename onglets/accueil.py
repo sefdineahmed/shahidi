@@ -156,13 +156,6 @@ def accueil():
             <p>Notre plateforme révolutionne l'approche diagnostique et thérapeutique des cancers digestifs, en vous offrant des prédictions de survie précises et des solutions innovantes basées sur l'intelligence artificielle.</p>
             <button class="highlight-btn">Explorez Notre Solution</button>
         </div>
-
-        <!-- CARROUSEL D'IMAGES -->
-        <div class="carousel-section">
-            <img src="assets/img0.jpeg" class="carousel-img" alt="Image 1"/>
-            <img src="assets/header.jpeg" class="carousel-img" alt="Image 2"/>
-            <img src="assets/img0.jpeg" class="carousel-img" alt="Image 3"/>
-        </div>
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
