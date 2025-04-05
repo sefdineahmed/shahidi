@@ -1,6 +1,5 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
+import numpy as np  # Ajout de l'importation numpy
 import plotly.express as px
 from datetime import date
 import io
@@ -115,7 +114,7 @@ def modelisation():
                 else:  
                     inputs[feature] = st.selectbox(  
                         label,   
-                        options=["Non", "Oui"],  
+                        options=["NON", "OUI"],  
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
