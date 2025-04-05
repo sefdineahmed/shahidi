@@ -172,6 +172,16 @@ def contact():
             margin-top: 2rem;
         }
     </style>
+
+  <div class="footer">
+        <p>
+            © 2025 <strong>MED-AI</strong> | Propulsé avec ❤️ par <strong>Sefdine</strong><br>
+            Connectez-vous avec moi :
+            <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗 LinkedIn</a>
+            <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon">🐦 Twitter</a>
+            <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" class="footer-icon">📘 Facebook</a>
+        </p>
+    </div>
     """, unsafe_allow_html=True)
 
     with st.container():
