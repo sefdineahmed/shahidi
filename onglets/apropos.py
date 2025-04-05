@@ -123,7 +123,7 @@ def a_propos():
                 """
                 <style>
                     .image-container img {
-                        height: 50px;  /* Ajuste la hauteur de l'image ici */
+                        height: 10px;  /* Ajuste la hauteur de l'image ici */
                         object-fit: contain; /* Maintient l'aspect ratio de l'image */
                     }
                 </style>
@@ -137,7 +137,7 @@ def a_propos():
 
     with col2:
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.8); padding: 1rem; border-radius: 10px;">
+        <div style="background: rgba(white); padding: 1rem; border-radius: 10px;">
             <h3>Interprétation des Résultats</h3>
             <ul style="line-height: 1.8;">
                 <li>📉 Meilleure performance du modèle Deep Survival</li>
