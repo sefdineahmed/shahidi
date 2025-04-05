@@ -30,6 +30,13 @@ def accueil():
                 padding: 2rem;
                 border-radius: 10px;
                 box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+                animation: backgroundAnimation 10s infinite linear;
+            }}
+
+            /* ANIMATION DU FOND */
+            @keyframes backgroundAnimation {{
+                0% {{ background-position: 0 0; }}
+                100% {{ background-position: 100% 100%; }}
             }}
 
             /* TITRE PRINCIPAL */
@@ -114,6 +121,26 @@ def accueil():
                 0% {{ opacity: 0; transform: translateY(50px); }}
                 100% {{ opacity: 1; transform: translateY(0); }}
             }}
+
+            /* SECTION TÉMOIGNAGES */
+            .testimonials-section {{
+                background-color: #fff;
+                padding: 3rem 0;
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                margin-top: 3rem;
+            }}
+            .testimonials-section h3 {{
+                font-size: 2.5rem;
+                color: #1e3a8a;
+                margin-bottom: 2rem;
+            }}
+            .testimonial {{
+                font-size: 1.3rem;
+                color: #555;
+                margin-bottom: 2rem;
+                font-style: italic;
+            }}
         </style>
 
         <!-- CONTENU HTML -->
@@ -130,6 +157,14 @@ def accueil():
             <h2>Un Futur Prometteur avec l'IA</h2>
             <p>Notre plateforme révolutionne l'approche diagnostique et thérapeutique des cancers digestifs, en vous offrant des prédictions de survie précises et des solutions innovantes basées sur l'intelligence artificielle.</p>
             <button class="highlight-btn">Explorez Notre Solution</button>
+        </div>
+
+        <!-- SECTION TÉMOIGNAGES -->
+        <div class="testimonials-section">
+            <h3>Témoignages</h3>
+            <p class="testimonial">"Cette plateforme a changé ma manière de diagnostiquer et de traiter les cancers digestifs. Une vraie révolution !" - Dr. Jean Dupont</p>
+            <p class="testimonial">"Grâce à cette technologie, nous avons réussi à sauver des vies. L'IA fait toute la différence." - Dr. Sophie Martin</p>
+            <p class="testimonial">"Un outil indispensable pour tous les professionnels de la santé impliqués dans la lutte contre le cancer." - Dr. Marc Leclerc</p>
         </div>
     """, unsafe_allow_html=True)
 
