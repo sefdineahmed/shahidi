@@ -1,13 +1,12 @@
 import os
-import numpy as np  
-import pandas as pd
 import joblib
-import tensorflow as tf
 import numpy as np
-from tensorflow.keras.models import load_model as tf_load_model
+import pandas as pd
 import streamlit as st
+import tensorflow as tf
 import plotly.express as px
-from onglets.modelisation import modelisation
+from tensorflow.keras.models import load_model as tf_load_model
+
 
 # --- Patch scikit-learn pour éviter l'erreur 'sklearn_tags' ---
 try:
@@ -20,16 +19,16 @@ try:
 except Exception as e:
     pass
 
-# Chemins vers les ressources
+# Chemin vers les ressources
 DATA_PATH = "data/data.xlsx"
 LOGO_PATH = "assets/background.jpeg"
 
-# Configuration des modèles
+# Pour ce projet, nous utilisons uniquement le modèle DeepSurv
 MODELS = {
     "DeepSurv": "models/deepsurv.keras"
 }
 
-# Définition des variables des caractéristiques
+# Configuration des variables cliniques
 FEATURE_CONFIG = {
     "AGE": "Âge",
     "Cardiopathie": "Cardiopathie",
@@ -45,7 +44,38 @@ FEATURE_CONFIG = {
     "Adenopathie": "Adénopathie",
 }
 
-# --- Fonctions Utilitaires ---
+# Définition des membres de l'équipe
+TEAM_MEMBERS = [
+    {
+        "name": "Pr. Aba Diop",
+        "Etablissement": "Université Alioune Diop de Bamby",
+        "role": "Maître de Conférences",
+        "email": "aba.diop@example.com",
+        "linkedin": "https://linkedin.com/in/abadiop",
+        "photo": "assets/team/aba.jpeg"
+    },
+    {
+        "name": "PhD. Idrissa Sy",
+        "Etablissement": "Université Alioune Diop de Bamby",
+        "role": "Enseignant Chercheur",
+        "email": "idrissa.sy@example.com",
+        "linkedin": "https://linkedin.com/in/idrissasy",
+        "photo": "assets/team/sy.jpeg"
+    },
+    {
+        "name": "M. Ahmed Sefdine",
+        "Etablissement": "Université Alioune Diop de Bamby",
+        "role": "Étudiant",
+        "email": "ahmed.sefdine@example.com",
+        "linkedin": "https://linkedin.com/in/sefdineahmed",
+        "photo": "assets/team/sefdine.jpeg"
+    }
+]
+
+# -----------------------
+# Fonctions utilitaires
+# -----------------------
+
 @st.cache_data(show_spinner=False)
 def load_data():
     """Charge les données depuis le fichier Excel."""
@@ -57,19 +87,32 @@ def load_data():
 
 @st.cache_resource(show_spinner=False)
 def load_model(model_path):
-    """Charge un modèle pré-entraîné."""
+    """
+    Charge le modèle DeepSurv pré-entraîné.
+    """
     if not os.path.exists(model_path):
         st.error(f"❌ Modèle introuvable : {model_path}")
         return None
 
     try:
-        return tf_load_model(model_path)
+        # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
+        def cox_loss(y_true, y_pred):
+            event = tf.cast(y_true[:, 0], dtype=tf.float32)
+            risk = y_pred[:, 0]
+            log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+            loss = -tf.reduce_mean((risk - log_risk) * event)
+            return loss
+        return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement du modèle : {e}")
         return None
 
 def encode_features(inputs):
-    """Encode les variables. Pour 'AGE', on conserve la valeur numérique."""
+    """
+    Encode les variables cliniques :
+    - Pour 'AGE', on conserve la valeur numérique.
+    - Pour les autres, "OUI" devient 1 et toute autre valeur 0.
+    """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
@@ -79,44 +122,94 @@ def encode_features(inputs):
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data):
-    """Effectue la prédiction du temps de survie selon le type de modèle."""
-    prediction = model.predict(data)
-    return prediction[0][0]
+    """
+    Effectue la prédiction du temps de survie avec le modèle DeepSurv.
+    """
+    if hasattr(model, "predict"):
+        prediction = model.predict(data)
+        if isinstance(prediction, np.ndarray):
+            if prediction.ndim == 2:
+                return prediction[0][0]
+            return prediction[0]
+        return prediction
+    else:
+        raise ValueError("Le modèle DeepSurv ne supporte pas la prédiction.")
 
 def clean_prediction(prediction):
-    """Nettoie la prédiction pour éviter les valeurs négatives."""
-    return max(prediction, 1)
+    """
+    Nettoie la prédiction pour éviter les valeurs négatives.
+    Pour DeepSurv, on s'assure d'avoir au moins 1 mois.
+    """
+    try:
+        pred_val = float(prediction)
+    except Exception:
+        pred_val = 0
+    return max(pred_val, 1)
 
 def save_new_patient(new_patient_data):
-    """Enregistre les informations d'un nouveau patient dans le fichier Excel."""
+    """
+    Enregistre les informations d'un nouveau patient dans le fichier Excel
+    et déclenche l'actualisation incrémentale du modèle.
+    """
     df = load_data()
     new_df = pd.DataFrame([new_patient_data])
     df = pd.concat([df, new_df], ignore_index=True)
     try:
         df.to_excel(DATA_PATH, index=False)
         st.success("Les informations du nouveau patient ont été enregistrées.")
-        load_data.clear()
-        retrain_model(df)  # Réentraîner le modèle après ajout des nouvelles données
+        load_data.clear()  # Vider le cache des données pour forcer le rechargement
+        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données
     except Exception as e:
         st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
-def retrain_model(data):
-    """Réentraîne le modèle DeepSurv avec les nouvelles données."""
-    # Préparation des données
-    X = data.drop(columns=["Tempsdesuivi", "Deces"])
-    y = data["Tempsdesuivi"]
+def update_deepsurv_model():
+    """
+    Recharge l'ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
+    avec les nouvelles informations patient.
+    
+    Hypothèses :
+    - La base de données contient toutes les variables définies dans FEATURE_CONFIG.
+    - La colonne 'Tempsdesuivi' contient le temps de suivi (durée) en mois.
+    - La colonne 'Deces' est codée par 'OUI' pour l'événement survenu et toute autre valeur pour un censuré.
+    
+    Cette fonction effectue un entraînement supplémentaire (fine-tuning) sur l'ensemble des données.
+    """
+    df = load_data()
+    if df.empty:
+        st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
+        return
 
-    # Normalisation des données
-    from sklearn.preprocessing import StandardScaler
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    # Préparation des features
+    feature_cols = list(FEATURE_CONFIG.keys())
+    X = df[feature_cols].copy()
+    for col in feature_cols:
+        if col != "AGE":
+            X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
 
-    # Chargement du modèle DeepSurv existant
+    # Préparation des cibles
+    # La première colonne de y correspond à l'événement : 1 si 'Deces' vaut "OUI", 0 sinon.
+    # La deuxième colonne correspond à la durée de suivi (Tempsdesuivi).
+    y_duration = df["Tempsdesuivi"].values
+    y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
+    y = np.column_stack([y_event, y_duration])
+
+    # Chargement et compilation du modèle DeepSurv
     model = load_model(MODELS["DeepSurv"])
+    if model is None:
+        st.error("Le modèle DeepSurv n'a pas pu être chargé pour la mise à jour.")
+        return
 
-    # Réentraînement du modèle
-    model.fit(X_scaled, y, epochs=10, batch_size=32)
+    def cox_loss(y_true, y_pred):
+        event = tf.cast(y_true[:, 0], dtype=tf.float32)
+        risk = y_pred[:, 0]
+        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+        loss = -tf.reduce_mean((risk - log_risk) * event)
+        return loss
 
-    # Sauvegarder le modèle réentrainé
+    model.compile(optimizer='adam', loss=cox_loss)
+    # Entraînement complémentaire (fine-tuning)
+    st.info("Mise à jour du modèle DeepSurv en cours...")
+    model.fit(X, y, epochs=10, verbose=1)
+    # Sauvegarde du modèle mis à jour
     model.save(MODELS["DeepSurv"])
-    st.success("Le modèle a été réentraîné avec les nouvelles données.")
+    st.success("Le modèle DeepSurv a été actualisé avec succès.")
