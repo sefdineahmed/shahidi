@@ -69,14 +69,15 @@ def encode_features(inputs):
     """
     Encode les variables.
     Pour 'AGE', on conserve la valeur numérique.
-    Pour les autres, "OUI" devient 1 et toute autre valeur 0.
+    Pour les autres, "OUI" devient "NON" et toute autre valeur devient "OUI".
     """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
             encoded[k] = v
         else:
-            encoded[k] = 1 if v.upper() == "OUI" else 0
+            # Inverser la logique ici : "OUI" devient "NON" et "NON" devient "OUI"
+            encoded[k] = "NON" if v.upper() == "OUI" else "OUI"
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data, model_name):
