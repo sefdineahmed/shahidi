@@ -25,7 +25,7 @@ def send_email(name, sender_email, message):
             <div style="background: #f8faff; padding: 40px;">
               <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
                 <div style="padding: 40px; text-align: center;">
-                  <img src="https://i.ibb.co/com/logo.png" alt="MED-AI Logo" style="height: 60px; margin-bottom: 30px;">
+                  <img src="https://i.ibb.co.com/logo.png" alt="MED-AI Logo" style="height: 60px; margin-bottom: 30px;">
                   <div style="background: linear-gradient(135deg, #2e77d0, #22d3ee); padding: 20px; border-radius: 12px;">
                     <h2 style="color: white; margin: 0;">Nouveau message de {name}</h2>
                   </div>
@@ -171,6 +171,22 @@ def contact():
             box-shadow: 0 8px 32px rgba(0,0,0,0.05);
             margin-top: 2rem;
         }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #f0f8ff;
+            border-top: 2px solid #ddd;
+            font-size: 14px;
+            color: #333;
+        }
+        .footer a {
+            color: #2e77d0;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -286,38 +302,16 @@ def contact():
                 </iframe>
             </div>
         """, unsafe_allow_html=True)
-    
-
-    
- st.markdown("""
-    <style>
-        .footer {
-            text-align: center;
-            padding: 20px 0;
-            background-color: #f0f8ff;
-            border-top: 2px solid #ddd;
-            font-size: 14px;
-            color: #333;
-        }
-        .footer a {
-            color: #2e77d0;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
-    <div class="footer">
-        <p>
-            © 2025 <strong>MED-AI</strong> | Propulsé avec ❤️ par <strong>Sefdine</strong><br>
-            Connectez-vous avec moi :
-            <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗 LinkedIn</a>
-            <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon">🐦 Twitter</a>
-            <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" class="footer-icon">📘 Facebook</a>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-
-if __name__ == "__main__":
-    contact()
+        
+        # Pied de page
+        st.markdown("""
+            <div class="footer">
+                <p>
+                    © 2025 <strong>MED-AI</strong> | Propulsé avec ❤️ par <strong>Sefdine</strong><br>
+                    Connectez-vous avec moi :
+                    <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗 LinkedIn</a>
+                    <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon">🐦 Twitter</a>
+                    <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" class="footer-icon">📘 Facebook</a>
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
