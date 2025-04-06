@@ -6,7 +6,8 @@ import pandas as pd
 import streamlit as st
 import tensorflow as tf
 import plotly.express as px
-#from kerastuner.tuners import RandomSearch
+from tensorflow.keras.activations import relu, tanh
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model as tf_load_model
 
 
@@ -20,6 +21,8 @@ try:
         BaseEstimator.sklearn_tags = sklearn_tags
 except Exception as e:
     pass
+# Définir l'optimiseur
+adam = Adam()
 
 # Chemin vers les ressources
 DATA_PATH = "data/data.xlsx"
