@@ -10,4 +10,6 @@ scikit-survival
 plotly
 Pillow
 fpdf2
+keras
+kerastuner
 
