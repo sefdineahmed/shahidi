@@ -224,7 +224,7 @@ def update_deepsurv_model():
     st.info("Mise à jour du modèle DeepSurv en cours...")
     model.fit(X, y, units_input=32, num_layers=5, units_0 = 112, dropout_0 = False, units_1=128, dropout_1=True, units_2=32, 
               dropout_2 = True, dropout_rate_0 = 0.5,dropout_rate_1=0.30000000000000004, dropout_rate_2 = 0.1, units_3 = 80, 
-              dropout_3 = False, units_4 = 128, dropout_4=True, dropout_rate_4 = 0.1)
+              dropout_3 = False, units_4 = 128, dropout_4=True, dropout_rate_4 = 0.1, activation = relu, activation_hidden = tanh, optimizer = adam)
     
     # Sauvegarde du modèle mis à jour
     model.save(MODELS["DeepSurv"])
