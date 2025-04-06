@@ -143,7 +143,7 @@ def accueil():
 
         <!-- CONTENU HTML -->
         <div class="custom-bg">
-            <h1 class="main-title">L'Innovation Médicale<br>Redéfinie</h1>
+            <h1 class="main-title"> Bienvenue dans notre Plateforme d'innovation Médicale<br>Redéfinie</h1>
             <p class="sub-title">
                 Plateforme IA de pointe pour la lutte contre les cancers digestifs
             </p>
