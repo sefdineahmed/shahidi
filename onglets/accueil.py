@@ -36,7 +36,7 @@ def accueil():
             .main-title {{
                 font-size: 20rem;  /* 🔁 AUGMENTE LA TAILLE ICI */
                 font-weight: bold;
-                color: green;     /* 🔁 COULEUR DU TITRE PRINCIPAL */
+                color: red;     /* 🔁 COULEUR DU TITRE PRINCIPAL */
                 margin-bottom: 6rem;
                 animation: fadeInTitle 3s ease-in-out;
             }}
@@ -44,7 +44,7 @@ def accueil():
             /* SOUS-TITRE */
             .sub-title {{
                 font-size: 4rem;  /* 🔁 AUGMENTE OU RÉDUIS ICI */
-                color: green;     /* 🔁 COULEUR DU SOUS-TITRE */
+                color: red;     /* 🔁 COULEUR DU SOUS-TITRE */
                 margin-bottom: 2rem;
                 animation: fadeInSubTitle 4s ease-in-out;
             }}
