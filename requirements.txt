@@ -12,4 +12,3 @@ Pillow
 fpdf2
 keras
 kerastuner
-RandomSearch
