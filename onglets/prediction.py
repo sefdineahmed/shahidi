@@ -15,7 +15,48 @@ from utils import (
     BASELINE_SURVIVAL
 )
 
-# ... (le CSS reste inchangé)  
+# Style CSS personnalisé  
+st.markdown("""  
+<style>  
+    :root {  
+        --primary: #2e77d0;  
+        --secondary: #1d5ba6;  
+        --accent: #22d3ee;  
+    }  
+    .st-emotion-cache-1y4p8pa {  
+        padding: 2rem 1rem;  
+    }  
+    .header-card {  
+        background: rgba(255, 255, 255, 0.9);  
+        border-radius: 15px;  
+        padding: 2rem;  
+        margin: 1rem 0;  
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  
+    }  
+    .prediction-card {  
+        background: linear-gradient(135deg, #f8fafc, #ffffff);  
+        border-left: 4px solid var(--primary);  
+        padding: 1.5rem;  
+        margin: 1rem 0;  
+    }  
+    .model-selector {  
+        border-radius: 12px !important;  
+        padding: 1rem !important;  
+        border: 2px solid var(--primary) !important;  
+    }  
+    .stButton>button {  
+        background: linear-gradient(45deg, var(--primary), var(--secondary)) !important;  
+        color: white !important;  
+        border-radius: 8px !important;  
+        padding: 0.8rem 2rem !important;  
+        transition: all 0.3s !important;  
+    }  
+    .stButton>button:hover {  
+        transform: translateY(-2px);  
+        box-shadow: 0 4px 15px rgba(46, 119, 208, 0.4) !important;  
+    }  
+</style>  
+""", unsafe_allow_html=True)  
 
 def generate_pdf_report(input_data, cleaned_pred, survival_probs):  
     pdf = FPDF()  
