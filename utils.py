@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 import tensorflow as tf
 import plotly.express as px
-from kerastuner.tuners import RandomSearch
+#from kerastuner.tuners import RandomSearch
 from tensorflow.keras.models import load_model as tf_load_model
 
 
