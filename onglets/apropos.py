@@ -2,7 +2,7 @@ from PIL import Image
 import streamlit as st
 import os
 import base64
-from utils import LOGO_PATH TEAM_MEMBERS # On récupère le chemin défini dans utils.py
+from utils import LOGO_PATH # On récupère le chemin défini dans utils.py
 
 # Fonction pour convertir une image en base64 (utile pour le background)
 def get_base64_bg(path):
