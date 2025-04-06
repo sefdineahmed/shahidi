@@ -10,7 +10,6 @@ from tensorflow.keras.activations import relu, tanh
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model as tf_load_model
 
-
 # --- Patch scikit-learn pour éviter l'erreur 'sklearn_tags' ---
 try:
     from sklearn.base import BaseEstimator
@@ -21,6 +20,7 @@ try:
         BaseEstimator.sklearn_tags = sklearn_tags
 except Exception as e:
     pass
+
 # Définir l'optimiseur
 adam = Adam()
 
@@ -143,8 +143,6 @@ def predict_survival(model, data):
                 raw_pred = raw_pred[0][0]
             else:
                 raw_pred = raw_pred[0]
-        else:
-            raw_pred = raw_pred
         baseline_median = 60.0
         est_time = baseline_median * np.exp(-raw_pred)
         return est_time
@@ -222,13 +220,11 @@ def update_deepsurv_model():
         loss = -tf.reduce_mean((risk - log_risk) * event)
         return loss
 
-    model.compile(optimizer='adam', loss=cox_loss)
+    model.compile(optimizer=adam, loss=cox_loss)
     # Entraînement complémentaire (fine-tuning)
     st.info("Mise à jour du modèle DeepSurv en cours...")
-    model.fit(X, y, units_input=32, num_layers=5, units_0 = 112, dropout_0 = False, units_1=128, dropout_1=True, units_2=32, 
-              dropout_2 = True, dropout_rate_0 = 0.5,dropout_rate_1=0.30000000000000004, dropout_rate_2 = 0.1, units_3 = 80, 
-              dropout_3 = False, units_4 = 128, dropout_4=True, dropout_rate_4 = 0.1, activation = relu, activation_hidden = tanh, optimizer = adam)
-    
+    model.fit(X, y, epochs=10, batch_size=32)
+
     # Sauvegarde du modèle mis à jour
     model.save(MODELS["DeepSurv"])
     st.success("Le modèle DeepSurv a été actualisé avec succès.")
