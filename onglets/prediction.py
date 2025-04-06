@@ -3,19 +3,16 @@ import numpy as np
 import plotly.express as px  
 from datetime import date  
 import io  
-import tempfile
 from fpdf import FPDF  
 from utils import (
     FEATURE_CONFIG,
     encode_features,
     load_model,
-    predict_survival_probs,
-    calculate_median_survival,
+    predict_survival,
+    clean_prediction,
     save_new_patient,
-    MODELS,
-    BASELINE_SURVIVAL
+    MODELS
 )
-
 
 # Style CSS personnalisé  
 st.markdown("""  
@@ -60,9 +57,7 @@ st.markdown("""
 </style>  
 """, unsafe_allow_html=True)  
 
-
-
-def generate_pdf_report(input_data, cleaned_pred, survival_probs):  
+def generate_pdf_report(input_data, cleaned_pred):  
     pdf = FPDF()  
     pdf.add_page()  
     pdf.set_font('Arial', 'B', 24)  
@@ -89,25 +84,14 @@ def generate_pdf_report(input_data, cleaned_pred, survival_probs):
     pdf.cell(0, 8, "Modèle utilisé : DeepSurv", ln=True)  
     pdf.set_text_color(46, 119, 208)  
     pdf.cell(0, 8, f"Survie médiane estimée : {cleaned_pred:.1f} mois", ln=True)  
-    
-    # Sauvegarde temporaire de la courbe
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmpfile:
-        fig = px.line(
-            x=list(survival_probs.keys()),
-            y=[p * 100 for p in survival_probs.values()],
-            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},
-            title="Courbe de Survie Prédite"
-        )
-        fig.write_image(tmpfile.name)
-        pdf.image(tmpfile.name, x=10, y=pdf.get_y(), w=180)
   
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
-
+  
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
-
+  
     with st.container():  
         st.markdown("<div class='header-card'>", unsafe_allow_html=True)  
         st.subheader("📋 Profil Patient")  
@@ -130,53 +114,50 @@ def modelisation():
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
-
+  
     input_df = encode_features(inputs)  
+    # Utilisation directe du modèle DeepSurv
     model_name = "DeepSurv"  
-    
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
                 model = load_model(MODELS[model_name])  
-                survival_probs = predict_survival_probs(model, input_df, BASELINE_SURVIVAL)
-                median_survival = calculate_median_survival(survival_probs)
-
+                pred = predict_survival(model, input_df)  
+                cleaned_pred = clean_prediction(pred)  
+  
+                # Enrichissement des données à enregistrer  
                 patient_data = input_df.to_dict(orient='records')[0]  
-                patient_data["Tempsdesuivi"] = round(median_survival, 1)  
-
+                patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
+                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
+  
+                # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
                 save_new_patient(patient_data)  
-
+  
                 with st.container():  
                     st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
                     col1, col2 = st.columns([1, 2])  
                     with col1:  
-                        display_value = f"{median_survival:.0f} mois" if median_survival < 60 else "60+ mois"
-                        st.metric(
-                            label="**Survie Médiane Estimée**", 
-                            value=display_value,  
+                        st.metric(  
+                            label="**Survie Médiane Estimée**",   
+                            value=f"{cleaned_pred:.0f} mois",  
                             help="Durée médiane de survie prédite"  
                         )  
                     with col2:  
-                        time_points = list(survival_probs.keys())
-                        prob_values = [survival_probs[t] * 100 for t in time_points]
-                        
-                        fig = px.line(
-                            x=time_points,
-                            y=prob_values,
-                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},
-                            color_discrete_sequence=['#2e77d0'],
-                            title="Courbe de Survie Prédite"
-                        )
-                        fig.update_layout(
-                            yaxis_range=[0, 100],
-                            xaxis_range=[0, 60],
-                            hovermode="x unified"
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
-                        
+                        # Pour la courbe de survie, on utilise une décroissance exponentielle 
+                        # caractéristique d'une distribution exponentielle avec médiane 'cleaned_pred'
+                        months = min(int(cleaned_pred), 120)  
+                        survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]
+                        fig = px.line(  
+                            x=list(range(months)),  
+                            y=survival_curve,  
+                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},  
+                            color_discrete_sequence=['#2e77d0']  
+                        )  
+                        st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
-
-                    pdf_bytes = generate_pdf_report(inputs, median_survival, survival_probs)  
+  
+                    # Génération et téléchargement du rapport PDF  
+                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
                         data=pdf_bytes,  
@@ -186,7 +167,7 @@ def modelisation():
                     )  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
-
+  
     # Suivi thérapeutique  
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
@@ -209,6 +190,6 @@ def modelisation():
                 st.toast("Plan de traitement enregistré avec succès !")  
             else:  
                 st.warning("Veuillez sélectionner au moins un traitement")  
-
+  
 if __name__ == "__main__":  
     modelisation()
