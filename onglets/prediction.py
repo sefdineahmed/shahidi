@@ -116,7 +116,9 @@ def modelisation():
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
   
-    input_df = encode_features(inputs)  
+    input_df = encode_features(inputs)
+    input_df = input_df.apply(pd.to_numeric, errors='ignore')  # Assurer que tout est converti en numérique sauf si ce n'est pas possible
+    
     model_name = "DeepSurv"  
   
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
@@ -125,15 +127,15 @@ def modelisation():
                 model = load_model(MODELS[model_name])  
                 pred = predict_survival(model, input_df)  
                 cleaned_pred = clean_prediction(pred)  
-  
+                
                 # Préparation des données enregistrables (version texte des inputs)
                 patient_data = inputs.copy()  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
-  
+
                 # Enregistrement dans le fichier de suivi
                 save_new_patient(patient_data)  
-  
+                
                 with st.container():  
                     st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
                     col1, col2 = st.columns([1, 2])  
@@ -154,7 +156,8 @@ def modelisation():
                         )  
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
-  
+
+                    # Génération du rapport PDF
                     pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
@@ -163,7 +166,7 @@ def modelisation():
                         mime="application/pdf",  
                         use_container_width=True  
                     )  
-  
+                    
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
@@ -182,7 +185,7 @@ def modelisation():
                 value=date.today(),  
                 help="Date préconisée pour le prochain examen"  
             )  
-  
+
         if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
             if selected_treatments:  
                 st.toast("Plan de traitement enregistré avec succès !")  
