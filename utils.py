@@ -50,34 +50,6 @@ FEATURE_CONFIG = {
     "Adenopathie": "Adénopathie",
 }
 
-# Définition des membres de l'équipe
-TEAM_MEMBERS = [
-    {
-        "name": "Pr. Aba Diop",
-        "Etablissement": "Université Alioune Diop de Bamby",
-        "role": "Maître de Conférences",
-        "email": "aba.diop@example.com",
-        "linkedin": "https://linkedin.com/in/abadiop",
-        "photo": "assets/team/aba.jpeg"
-    },
-    {
-        "name": "PhD. Idrissa Sy",
-        "Etablissement": "Université Alioune Diop de Bamby",
-        "role": "Enseignant Chercheur",
-        "email": "idrissa.sy@example.com",
-        "linkedin": "https://linkedin.com/in/idrissasy",
-        "photo": "assets/team/sy.jpeg"
-    },
-    {
-        "name": "M. Ahmed Sefdine",
-        "Etablissement": "Université Alioune Diop de Bamby",
-        "role": "Étudiant",
-        "email": "ahmed.sefdine@example.com",
-        "linkedin": "https://linkedin.com/in/sefdineahmed",
-        "photo": "assets/team/sefdine.jpeg"
-    }
-]
-
 # -----------------------
 # Fonctions utilitaires
 # -----------------------
@@ -182,9 +154,18 @@ def save_new_patient(new_patient_data):
         for k, v in new_patient_data.items()
     }])
 
+    # Convertir tous les types de données à des types compatibles avant d'enregistrer
+    for col in new_df.columns:
+        if new_df[col].dtype == "object":
+            new_df[col] = new_df[col].apply(str)  # Convertir tout en chaîne de caractères si nécessaire
+        elif new_df[col].dtype == "bool":
+            new_df[col] = new_df[col].astype(int)  # Convertir les booléens en entiers (0/1)
+
     # Ajouter et sauvegarder
     df = pd.concat([df, new_df], ignore_index=True)
     try:
+        # Convertir tout le DataFrame en types compatibles avant de l'enregistrer dans Excel
+        df = df.apply(pd.to_numeric, errors='ignore')  # Convertir tout en numérique si possible
         df.to_excel(DATA_PATH, index=False)
         st.success("✅ Les informations du nouveau patient ont été enregistrées.")
         load_data.clear()  # Vider le cache
@@ -227,21 +208,14 @@ def update_deepsurv_model():
     # Chargement et compilation du modèle DeepSurv
     model = load_model(MODELS["DeepSurv"])
     if model is None:
-        st.error("Le modèle DeepSurv n'a pas pu être chargé pour la mise à jour.")
+        st.error("❌ Impossible de charger le modèle DeepSurv.")
         return
 
-    def cox_loss(y_true, y_pred):
-        event = tf.cast(y_true[:, 0], dtype=tf.float32)
-        risk = y_pred[:, 0]
-        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
-        loss = -tf.reduce_mean((risk - log_risk) * event)
-        return loss
+    # Fine-tuning du modèle avec les nouvelles données
+    model.compile(optimizer=adam, loss="cox_loss")
+    model.fit(X, y, epochs=10, batch_size=32, verbose=1)
 
-    model.compile(optimizer=adam, loss=cox_loss)
-    # Entraînement complémentaire (fine-tuning)
-    st.info("Mise à jour du modèle DeepSurv en cours...")
-    model.fit(X, y, epochs=10, batch_size=32)
-
-    # Sauvegarde du modèle mis à jour
+    # Sauvegarde du modèle fine-tuné
     model.save(MODELS["DeepSurv"])
-    st.success("Le modèle DeepSurv a été actualisé avec succès.")
+    st.success("✅ Le modèle DeepSurv a été mis à jour avec succès.")
+
