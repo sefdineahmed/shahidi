@@ -110,7 +110,7 @@ def modelisation():
                 else:  
                     inputs[feature] = st.selectbox(  
                         label,   
-                        options=["Non", "Oui"],  
+                        options=["NON", "OUI"],  
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
