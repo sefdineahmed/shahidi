@@ -18,7 +18,7 @@ try:
         def sklearn_tags(self):
             return {}
         BaseEstimator.sklearn_tags = sklearn_tags
-except Exception as e:
+except Exception:
     pass
 
 # Définir l'optimiseur
@@ -65,38 +65,43 @@ def load_data():
 
 @st.cache_resource(show_spinner=False)
 def load_model(model_path):
-    """Charge le modèle DeepSurv pré-entraîné."""
-
+    """
+    Charge le modèle DeepSurv pré-entraîné.
+    """
     if not os.path.exists(model_path):
         st.error(f"❌ Modèle introuvable : {model_path}")
         return None
 
     try:
+        # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
         def cox_loss(y_true, y_pred):
             event = tf.cast(y_true[:, 0], dtype=tf.float32)
             risk = y_pred[:, 0]
             log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
             loss = -tf.reduce_mean((risk - log_risk) * event)
             return loss
-
         return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement du modèle : {e}")
         return None
 
 def encode_features(inputs):
-    """Encode les variables cliniques."""
+    """
+    Encode les variables cliniques :
+    - Pour 'AGE', on conserve la valeur numérique.
+    - Pour les autres, "OUI" devient 1 et toute autre valeur 0.
+    """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
             encoded[k] = v
         else:
-            encoded[k] = 1 if v.upper() == "OUI" else 0
+            encoded[k] = 1 if str(v).upper() == "OUI" else 0
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data):
     """
-    Prédit la survie médiane estimée à partir du risque avec DeepSurv.
+    Effectue la prédiction du temps de survie avec le modèle DeepSurv.
     """
     if hasattr(model, "predict"):
         raw_pred = model.predict(data)
@@ -112,7 +117,10 @@ def predict_survival(model, data):
         raise ValueError("Le modèle DeepSurv ne supporte pas la prédiction.")
 
 def clean_prediction(prediction):
-    """Nettoie la prédiction pour éviter les valeurs négatives."""
+    """
+    Nettoie la prédiction pour éviter les valeurs négatives.
+    Pour DeepSurv, on s'assure d'avoir au moins 1 mois.
+    """
     try:
         pred_val = float(prediction)
     except Exception:
@@ -121,7 +129,9 @@ def clean_prediction(prediction):
 
 def save_new_patient(new_patient_data):
     """
-    Enregistre les informations d'un nouveau patient dans le fichier Excel.
+    Enregistre les informations d'un nouveau patient dans le fichier Excel
+    avec les valeurs booléennes converties en 'OUI' ou 'NON'.
+    Déclenche également l'actualisation incrémentale du modèle.
     """
 
     def bool_to_oui_non(val):
@@ -129,6 +139,7 @@ def save_new_patient(new_patient_data):
             return "OUI" if val == 1 else "NON"
         return val
 
+    # Charger les données existantes
     df = load_data()
 
     # Préparer les nouvelles données
@@ -158,37 +169,49 @@ def save_new_patient(new_patient_data):
         st.success("✅ Les informations du nouveau patient ont été enregistrées.")
         load_data.clear()
         update_deepsurv_model()
-
     except Exception as e:
         st.error(f"❌ Erreur lors de l'enregistrement des données : {e}")
         st.write("Types de colonnes :", df.dtypes.to_dict())
 
 def update_deepsurv_model():
     """
-    Met à jour le modèle DeepSurv avec les nouvelles données patient.
+    Recharge l'ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
+    avec les nouvelles informations patient.
     """
     df = load_data()
     if df.empty:
         st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
         return
 
+    # Préparation des features
     feature_cols = list(FEATURE_CONFIG.keys())
     X = df[feature_cols].copy()
     for col in feature_cols:
         if col != "AGE":
             X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
 
+    # Préparation des cibles
     y_duration = df["Tempsdesuivi"].values
     y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
     y = np.column_stack([y_event, y_duration])
 
+    # Chargement et compilation du modèle DeepSurv
     model = load_model(MODELS["DeepSurv"])
     if model is None:
         st.error("❌ Impossible de charger le modèle DeepSurv.")
         return
 
-    model.compile(optimizer=adam, loss="cox_loss")
-    model.fit(X, y, epochs=10, batch_size=32, verbose=1)
+    # Définition de la fonction de perte pour le fine-tuning
+    def cox_loss(y_true, y_pred):
+        event = tf.cast(y_true[:, 0], dtype=tf.float32)
+        risk = y_pred[:, 0]
+        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+        loss = -tf.reduce_mean((risk - log_risk) * event)
+        return loss
+
+    model.compile(optimizer=adam, loss=cox_loss)
+    st.info("Mise à jour du modèle DeepSurv en cours...")
+    model.fit(X, y, epochs=10, batch_size=32)
 
     model.save(MODELS["DeepSurv"])
     st.success("✅ Le modèle DeepSurv a été mis à jour avec succès.")
