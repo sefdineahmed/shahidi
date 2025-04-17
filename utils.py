@@ -163,18 +163,35 @@ def clean_prediction(prediction):
 def save_new_patient(new_patient_data):
     """
     Enregistre les informations d'un nouveau patient dans le fichier Excel
-    et déclenche l'actualisation incrémentale du modèle.
+    avec les valeurs booléennes converties en 'OUI' ou 'NON'.
+    Déclenche également l'actualisation incrémentale du modèle.
     """
+
+    # Fonction de conversion booléen/nombre → OUI/NON
+    def bool_to_oui_non(val):
+        if isinstance(val, (int, float)):
+            return "OUI" if val == 1 else "NON"
+        return val
+
+    # Charger les données existantes
     df = load_data()
-    new_df = pd.DataFrame([new_patient_data])
+
+    # Préparer les nouvelles données avec conversion
+    new_df = pd.DataFrame([{
+        k: bool_to_oui_non(v) if k != "AGE" else v
+        for k, v in new_patient_data.items()
+    }])
+
+    # Ajouter et sauvegarder
     df = pd.concat([df, new_df], ignore_index=True)
     try:
         df.to_excel(DATA_PATH, index=False)
-        st.success("Les informations du nouveau patient ont été enregistrées.")
-        load_data.clear()  # Vider le cache des données pour forcer le rechargement
-        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données
+        st.success("✅ Les informations du nouveau patient ont été enregistrées.")
+        load_data.clear()  # Vider le cache
+        update_deepsurv_model()  # Mise à jour du modèle
     except Exception as e:
-        st.error(f"Erreur lors de l'enregistrement des données : {e}")
+        st.error(f"❌ Erreur lors de l'enregistrement des données : {e}")
+
 
 def update_deepsurv_model():
     """
