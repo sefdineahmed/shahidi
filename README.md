@@ -1,4 +1,4 @@
-# 📊 **Ushahidi - Plateforme d'Aide à la Décision** ⚕️
+# 📊 **shahidi - Plateforme d'Aide à la Décision** ⚕️
 
 C'est une application interactive développée avec **Streamlit** permettant d'estimer le temps de survie des patients atteints du cancer gastrique après traitement. L'objectif est d'offrir un outil d'aide à la décision basé sur l'intelligence artificielle et l'analyse de survie.
 
@@ -27,7 +27,7 @@ C'est une application interactive développée avec **Streamlit** permettant d'e
 ## 🔧 **Installation et exécution**
 ### 1️⃣ Cloner le projet
 ```bash
-git clone https://github.com/sefdineahmed/Ushahidi.git
+git clone https://github.com/sefdineahmed/shahidi.git
 cd Ushahidi
 ```
 
