@@ -3,7 +3,7 @@ from onglets import accueil, analyse_descriptive, modelisation, a_propos, contac
 
 # Configuration de la page
 st.set_page_config(
-    page_title="shahidi",
+    page_title="Shahidi",
     page_icon="⚕️",
     layout="wide",
     initial_sidebar_state="expanded"
