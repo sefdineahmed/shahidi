@@ -110,9 +110,9 @@ def modelisation():
                 else:  
                     inputs[feature] = st.selectbox(  
                         label,   
-                        options=["Non", "Oui"],  
-                        help="Présence de la caractéristique clinique"  
-                    )  
+                        options=["NON", "OUI"],  # Options OUI ou NON
+                        help="Présence de la caractéristique clinique"
+                    )
         st.markdown("</div>", unsafe_allow_html=True)  
   
     input_df = encode_features(inputs)  
@@ -128,7 +128,7 @@ def modelisation():
                 # Enrichissement des données à enregistrer  
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
-                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin  
+                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
   
                 # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
                 save_new_patient(patient_data)  
@@ -190,6 +190,6 @@ def modelisation():
                 st.toast("Plan de traitement enregistré avec succès !")  
             else:  
                 st.warning("Veuillez sélectionner au moins un traitement")  
-
+  
 if __name__ == "__main__":  
     modelisation()  
