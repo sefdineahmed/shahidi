@@ -75,8 +75,9 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf.set_font('Arial', '', 12)  
     col_widths = [60, 60]  
     for key, value in input_data.items():  
-        pdf.cell(col_widths[0], 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
-        pdf.cell(col_widths[1], 8, str(value), 1, 1, 'L')  
+        if key not in ["Tempsdesuivi", "Deces"]:  
+            pdf.cell(col_widths[0], 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
+            pdf.cell(col_widths[1], 8, str(value), 1, 1, 'L')  
   
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
@@ -88,7 +89,7 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
-  
+
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
   
@@ -110,14 +111,14 @@ def modelisation():
                 else:  
                     inputs[feature] = st.selectbox(  
                         label,   
-                        options=["NON", "OUI"],  
+                        options=["Non", "Oui"],  
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
   
     input_df = encode_features(inputs)  
-    # Utilisation directe du modèle DeepSurv
     model_name = "DeepSurv"  
+  
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
@@ -125,12 +126,12 @@ def modelisation():
                 pred = predict_survival(model, input_df)  
                 cleaned_pred = clean_prediction(pred)  
   
-                # Enrichissement des données à enregistrer  
-                patient_data = input_df.to_dict(orient='records')[0]  
+                # Préparation des données enregistrables (version texte des inputs)
+                patient_data = inputs.copy()  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
-                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
+                patient_data["Deces"] = "OUI"  
   
-                # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
+                # Enregistrement dans le fichier de suivi
                 save_new_patient(patient_data)  
   
                 with st.container():  
@@ -143,10 +144,8 @@ def modelisation():
                             help="Durée médiane de survie prédite"  
                         )  
                     with col2:  
-                        # Pour la courbe de survie, on utilise une décroissance exponentielle 
-                        # caractéristique d'une distribution exponentielle avec médiane 'cleaned_pred'
                         months = min(int(cleaned_pred), 120)  
-                        survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]
+                        survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]  
                         fig = px.line(  
                             x=list(range(months)),  
                             y=survival_curve,  
@@ -156,7 +155,6 @@ def modelisation():
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
   
-                    # Génération et téléchargement du rapport PDF  
                     pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
@@ -165,10 +163,10 @@ def modelisation():
                         mime="application/pdf",  
                         use_container_width=True  
                     )  
+  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
   
-    # Suivi thérapeutique  
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
         treatment_cols = st.columns(2)  
@@ -190,6 +188,6 @@ def modelisation():
                 st.toast("Plan de traitement enregistré avec succès !")  
             else:  
                 st.warning("Veuillez sélectionner au moins un traitement")  
-  
+
 if __name__ == "__main__":  
     modelisation()
