@@ -88,7 +88,7 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
-
+  
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
   
@@ -110,9 +110,9 @@ def modelisation():
                 else:  
                     inputs[feature] = st.selectbox(  
                         label,   
-                        options=["NON", "OUI"],  # Options OUI ou NON
-                        help="Présence de la caractéristique clinique"
-                    )
+                        options=["Non", "Oui"],  
+                        help="Présence de la caractéristique clinique"  
+                    )  
         st.markdown("</div>", unsafe_allow_html=True)  
   
     input_df = encode_features(inputs)  
@@ -192,4 +192,4 @@ def modelisation():
                 st.warning("Veuillez sélectionner au moins un traitement")  
   
 if __name__ == "__main__":  
-    modelisation()  
+    modelisation()
