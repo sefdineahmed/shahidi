@@ -62,7 +62,7 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf.add_page()  
     pdf.set_font('Arial', 'B', 24)  
     pdf.set_text_color(46, 119, 208)  
-    pdf.cell(0, 15, "Rapport Médical MED-AI", ln=True, align='C')  
+    pdf.cell(0, 15, "Rapport Médical SHAHIDI-AI", ln=True, align='C')  
   
     pdf.set_font('Arial', '', 12)  
     pdf.set_text_color(0, 0, 0)  
