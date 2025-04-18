@@ -118,7 +118,7 @@ def clean_prediction(prediction):
     return max(pred_val, 1)
 
 # --- Sauvegarde d'un nouveau patient ---
-def save_new_patient(new_patient: dict, filename: str = "data/suivi.csv"):
+def save_new_patient(new_patient: dict, filename: str = "data/data.xlsx"):
     import pandas as pd
     import os
 
@@ -127,14 +127,25 @@ def save_new_patient(new_patient: dict, filename: str = "data/suivi.csv"):
         new_patient_clean = {k: (float(v) if isinstance(v, (int, float)) else str(v)) for k, v in new_patient.items()}
 
         new_entry = pd.DataFrame([new_patient_clean])
+
         if os.path.exists(filename):
-            df = pd.read_csv(filename)
+            # Charger les données existantes
+            df = pd.read_excel(filename)
+            # Ajouter la nouvelle entrée
             df = pd.concat([df, new_entry], ignore_index=True)
         else:
+            # Si le fichier n'existe pas, on crée une nouvelle DataFrame
             df = new_entry
-        df.to_csv(filename, index=False)
+
+        # Sauvegarder les données dans le fichier Excel
+        df.to_excel(filename, index=False)
+
+        # Message de succès
+        st.success("✅ Les informations du nouveau patient ont été enregistrées.")
+        
     except Exception as e:
         raise RuntimeError(f"Erreur lors de l'enregistrement des données : {e}")
+
 
 
 # --- Mise à jour du modèle DeepSurv avec les nouvelles données ---
