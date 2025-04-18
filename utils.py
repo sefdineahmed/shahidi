@@ -1,3 +1,5 @@
+# utils.py
+
 import os
 import joblib
 import numpy as np
@@ -25,146 +27,122 @@ adam = Adam()
 
 MODELS = {
     "DeepSurv": "models/deepsurv.keras",
-    "CoxPH": "models/coxph.joblib"
+    "CoxPH":   "models/coxph.joblib"
 }
 
 FEATURE_CONFIG = {
-    "AGE": "Âge",
-    "Cardiopathie": "Cardiopathie",
-    "Ulceregastrique": "Ulcère gastrique",
+    "AGE":               "Âge",
+    "Cardiopathie":      "Cardiopathie",
+    "Ulceregastrique":   "Ulcère gastrique",
     "Douleurepigastrique": "Douleur épigastrique",
     "Ulcero-bourgeonnant": "Lésion ulcéro-bourgeonnante",
-    "Denitrution": "Dénutrition",
-    "Tabac": "Tabagisme actif",
-    "Mucineux": "Type mucineux",
-    "Infiltrant": "Type infiltrant",
-    "Stenosant": "Type sténosant",
-    "Metastases": "Métastases",
-    "Adenopathie": "Adénopathie",
+    "Denitrution":       "Dénutrition",
+    "Tabac":             "Tabagisme actif",
+    "Mucineux":          "Type mucineux",
+    "Infiltrant":        "Type infiltrant",
+    "Stenosant":         "Type sténosant",
+    "Metastases":        "Métastases",
+    "Adenopathie":       "Adénopathie",
 }
 
 # --- Chargement des données ---
 @st.cache_data(show_spinner=False)
-def load_data():
+def load_data() -> pd.DataFrame:
     if os.path.exists(DATA_PATH):
         return pd.read_excel(DATA_PATH)
-    else:
-        st.error(f"❌ Fichier introuvable : {DATA_PATH}")
-        return pd.DataFrame()
-
-# --- Fonction de perte Cox personnalisée ---
-def cox_loss(y_true, y_pred):
-    event = tf.cast(y_true[:, 0], dtype=tf.float32)
-    risk = y_pred[:, 0]
-    log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
-    loss = -tf.reduce_mean((risk - log_risk) * event)
-    return loss
+    st.error(f"❌ Fichier introuvable : {DATA_PATH}")
+    return pd.DataFrame()
 
 # --- Chargement du modèle DeepSurv ---
 @st.cache_resource(show_spinner=False)
-def load_model(model_path):
-    if not os.path.exists(model_path):
-        st.error(f"❌ Modèle introuvable : {model_path}")
+def load_deepsurv_model(path: str):
+    if not os.path.exists(path):
+        st.error(f"❌ Modèle introuvable : {path}")
         return None
-
     try:
-        return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
+        return tf_load_model(path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
-        st.error(f"❌ Erreur lors du chargement du modèle : {e}")
+        st.error(f"❌ Erreur chargement DeepSurv : {e}")
         return None
 
-# --- Encodage des caractéristiques ---
-def encode_features(inputs):
-    encoded = {}
+# --- Chargement du modèle CoxPH ---
+@st.cache_resource(show_spinner=False)
+def load_cox_model(path: str):
+    if not os.path.exists(path):
+        st.error(f"❌ Modèle introuvable : {path}")
+        return None
+    try:
+        return joblib.load(path)
+    except Exception as e:
+        st.error(f"❌ Erreur chargement CoxPH : {e}")
+        return None
+
+# --- Custom loss pour DeepSurv ---
+def cox_loss(y_true, y_pred):
+    event = tf.cast(y_true[:, 0], tf.float32)
+    risk  = y_pred[:, 0]
+    log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+    return -tf.reduce_mean((risk - log_risk) * event)
+
+# --- Encodage des inputs utilisateur en DataFrame ---
+def encode_features(inputs: dict) -> pd.DataFrame:
+    enc = {}
     for k, v in inputs.items():
-        if k == "AGE":
-            encoded[k] = v
-        else:
-            encoded[k] = 1 if str(v).upper() == "OUI" else 0
-    return pd.DataFrame([encoded])
+        enc[k] = v if k == "AGE" else (1 if str(v).upper() == "OUI" else 0)
+    return pd.DataFrame([enc])
 
-# --- Calibration : déterminer les seuils de survie ---
-def calibrate_median_survival_by_risk_group(model, X, y, n_groups=3):
-    risk_scores = model.predict(X).flatten()
-    df = pd.DataFrame({
-        'risk': risk_scores,
-        'event': y[:, 0],
-        'time': y[:, 1]
-    })
-
-    df['risk_group'] = pd.qcut(df['risk'], q=n_groups, labels=False, duplicates='drop')
-    median_by_group = df.groupby('risk_group')['time'].median().to_dict()
-    thresholds = np.quantile(df['risk'], q=np.linspace(0, 1, n_groups+1)[1:-1])
-    return thresholds, median_by_group
-
-# --- Prédiction du temps de survie ---
-def predict_survival(model, data, thresholds=None, median_by_group=None):
-    risk_score = float(model.predict(data).flatten()[0])
-
-    if thresholds is None or median_by_group is None:
-        # Estimation simpliste si calibration non disponible
-        baseline_median = 60.0  # durée médiane arbitraire
-        return baseline_median * np.exp(-risk_score)
+# --- Extraction des scores de risque (DeepSurv ou CoxPH) ---
+def get_risk_scores(model, X: pd.DataFrame) -> np.ndarray:
+    if hasattr(model, "predict"):
+        scores = model.predict(X)
+    elif hasattr(model, "predict_partial_hazard"):
+        # pour lifelines.CoxPHFitter
+        scores = model.predict_partial_hazard(X)
     else:
-        group = sum(risk_score > t for t in thresholds)
-        return median_by_group.get(group, 1.0)
+        raise AttributeError("Modèle sans méthode de prédiction de risque reconnue.")
+    return np.array(scores).reshape(-1)
 
-# --- Nettoyage des prédictions (évitent les valeurs négatives ou NaN) ---
-def clean_prediction(prediction):
+# --- Calibration : thresholds et médianes par groupe de risque ---
+def calibrate_median_survival_by_risk_group(model, X: pd.DataFrame, y: np.ndarray, n_groups: int = 3):
+    risks = get_risk_scores(model, X)
+    df = pd.DataFrame({
+        "risk":  risks,
+        "event": y[:, 0],
+        "time":  y[:, 1]
+    })
+    df["risk_group"] = pd.qcut(df["risk"], q=n_groups, labels=False, duplicates="drop")
+    medians = df.groupby("risk_group")["time"].median().to_dict()
+    thresholds = np.quantile(df["risk"], q=np.linspace(0, 1, n_groups + 1)[1:-1])
+    return thresholds, medians
+
+# --- Prédiction du temps de survie d'un seul patient ---
+def predict_survival(model, data: pd.DataFrame, thresholds=None, median_by_group=None) -> float:
+    risk = float(get_risk_scores(model, data)[0])
+    if thresholds is None or median_by_group is None:
+        # fallback simple
+        baseline = 60.0
+        return baseline * np.exp(-risk)
+    group = sum(risk > t for t in thresholds)
+    return median_by_group.get(group, baseline)
+
+# --- Nettoyage final de la prédiction ---
+def clean_prediction(pred: float) -> float:
     try:
-        pred_val = float(prediction)
+        p = float(pred)
     except Exception:
-        pred_val = 0
-    return max(pred_val, 1)
+        p = 0.0
+    return max(p, 1.0)
 
-# --- Sauvegarde d'un nouveau patient ---
-def save_new_patient(new_patient: dict, filename: str = "data/data.xlsx"):
-    import pandas as pd
-    import os
-
-    try:
-        # Forcer les types en str/float
-        new_patient_clean = {k: (float(v) if isinstance(v, (int, float)) else str(v)) for k, v in new_patient.items()}
-
-        new_entry = pd.DataFrame([new_patient_clean])
-        if os.path.exists(filename):
-            # Charger l'existant
-            df = pd.read_excel(filename)
-            # Ajouter la nouvelle entrée
-            df = pd.concat([df, new_entry], ignore_index=True)
-        else:
-            # Si le fichier n'existe pas, créer un nouveau DataFrame
-            df = new_entry
-        # Sauvegarder dans un fichier Excel
-        df.to_excel(filename, index=False)
-    except Exception as e:
-        raise RuntimeError(f"Erreur lors de l'enregistrement des données : {e}")
-
-
-
-# --- Mise à jour du modèle DeepSurv avec les nouvelles données ---
-def update_deepsurv_model():
-    df = load_data()
-    if df.empty:
-        st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
-        return
-
-    feature_cols = list(FEATURE_CONFIG.keys())
-    X = df[feature_cols].copy()
-    for col in feature_cols:
-        if col != "AGE":
-            X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
-
-    y_duration = df["Tempsdesuivi"].astype(float).values
-    y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
-    y = np.column_stack([y_event, y_duration])
-
-    model = load_model(MODELS["DeepSurv"])
-    if model is None:
-        st.error("❌ Impossible de charger le modèle DeepSurv.")
-        return
-
-    model.compile(optimizer=adam, loss=cox_loss)
-    model.fit(X, y, epochs=10, batch_size=32, verbose=1)
-    model.save(MODELS["DeepSurv"])
-    st.success("✅ Le modèle DeepSurv a été mis à jour avec succès.")
+# --- Sauvegarde d'une nouvelle entrée patient ---
+def save_new_patient(new_patient: dict, filename: str = DATA_PATH):
+    new_clean = {
+        k: (float(v) if isinstance(v, (int, float)) else str(v))
+        for k, v in new_patient.items()
+    }
+    entry = pd.DataFrame([new_clean])
+    if os.path.exists(filename):
+        df = pd.read_excel(filename)
+        df = pd.concat([df, entry], ignore_index=True)
+    else:
+        df = entry
+    df.to_excel(filename, index=False)
