@@ -185,11 +185,10 @@ def contact():
         st.markdown("""
             <div class="footer">
                 <p>
-                    © 2025 <strong>MED-AI</strong> | Propulsé avec ❤️ par <strong>Ahmed Sefdine </strong><br>
+                    © 2025 <strong>SHAHIDI-AI</strong> | Propulsé par <strong>Ahmed Sefdine </strong><br>
                     Connectez-vous avec moi :
-                    <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗 LinkedIn</a>
-                    <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon">🐦 Twitter</a>
-                    <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" class="footer-icon">📘 Facebook</a>
+                    <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗LinkedIn</a>
+                    <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon"> 🐦Twitter</a>
                 </p>
             </div>
         """, unsafe_allow_html=True)
