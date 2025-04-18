@@ -140,7 +140,7 @@ def contact():
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🔗 LinkedIn</a>
                             <a href="https://twitter.com/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🐦 Twitter</a>
-                            <a href="https://www.facebook.com/sefdine.ahmed" target="_blank" style="color: var(--primary); text-decoration: none;">📘 Facebook</a>
+        
                         </div>
                     </div>
                 </div>
@@ -186,9 +186,6 @@ def contact():
             <div class="footer">
                 <p>
                     © 2025 <strong>SHAHIDI-AI</strong> | Propulsé par <strong>Ahmed Sefdine </strong><br>
-                    Connectez-vous avec moi :
-                    <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" class="footer-icon">🔗LinkedIn</a>
-                    <a href="https://twitter.com/sefdineahmed" target="_blank" class="footer-icon"> 🐦Twitter</a>
                 </p>
             </div>
         """, unsafe_allow_html=True)
