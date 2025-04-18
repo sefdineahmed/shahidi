@@ -101,7 +101,7 @@ def show_model_info(selected_model):
                 "Mise à jour incrémentale"
             ]
         },
-        #"CoxPH": {
+        "CoxPH": {
         "description": "Modèle de régression de Cox proportionnelle",
         "avantages": [
             "Interprétabilité statistique",
