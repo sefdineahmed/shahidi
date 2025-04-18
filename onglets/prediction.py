@@ -209,29 +209,5 @@ def modelisation():
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
 
-    # Section suivi thérapeutique  
-    st.markdown("---")  
-    with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
-        treatment_cols = st.columns(2)  
-        with treatment_cols[0]:  
-            selected_treatments = st.multiselect(  
-                "Options Thérapeutiques",  
-                options=["Chimiothérapie", "Exclusive"],  
-                help="Sélectionner les traitements à comparer"  
-            )  
-        with treatment_cols[1]:  
-            follow_up_date = st.date_input(  
-                "Date de Suivi Recommandée",  
-                value=date.today(),  
-                help="Date préconisée pour le prochain examen"  
-            )  
-
-        if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
-            if selected_treatments:  
-                st.toast("Plan de traitement enregistré avec succès !")  
-            else:  
-                st.warning("Veuillez sélectionner au moins un traitement")  
-
-
 if __name__ == "__main__":  
     modelisation()
