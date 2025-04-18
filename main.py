@@ -1,39 +1,28 @@
-import streamlit as st
-from onglets import accueil, analyse_descriptive, modelisation, a_propos, contact
+# main.py
 
-# Configuration de la page
+import streamlit as st
+
+# ⇦ DÉPLACÉ ICI, tout en haut avant quoi que ce soit d'autre
 st.set_page_config(
-    page_title="Shahidi",
-    page_icon="⚕️",
-    layout="wide",
+    page_title="Shahidi - Prédiction de survie",
+    layout="centered",
     initial_sidebar_state="expanded"
 )
 
-# Dictionnaire des pages
+from onglets import accueil, analyse_descriptive, modelisation, a_propos, contact
+
 PAGES = {
-    "🏠 Accueil": accueil,
-    "📊 Analyse": analyse_descriptive,
-    "🤖 Prédiction": modelisation,
-    "📚 À Propos": a_propos,
-    "📩 Contact": contact
+    "Accueil":    accueil,
+    "Analyse":    analyse_descriptive,
+    "Modélisation": modelisation,
+    "À propos":   a_propos,
+    "Contact":    contact
 }
 
 def main():
-    st.markdown(
-        """
-        <style>
-        .stTabs [data-baseweb="tab"] {
-            justify-content: flex-end;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    tabs = st.tabs(list(PAGES.keys()))
-    for tab, (page_name, page_func) in zip(tabs, PAGES.items()):
-        with tab:
-            page_func()
+    menu = st.sidebar.radio("Navigation", list(PAGES.keys()))
+    page_func = PAGES[menu]
+    page_func()
 
 if __name__ == "__main__":
     main()
