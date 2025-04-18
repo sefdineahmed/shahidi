@@ -17,18 +17,12 @@ def send_email(name, sender_email, message):
         msg = MIMEMultipart()
         msg["From"] = EMAIL_SENDER
         msg["To"] = EMAIL_RECEIVER
-        msg["Subject"] = f"📬 Nouveau contact MED-AI : {name}"
+        msg["Subject"] = f"📬 Nouveau contact SHAHIDI-AI : {name}"
         
         html = f"""
         <html>
           <body style="margin: 0; font-family: 'Segoe UI', sans-serif;">
             <div style="background: #f8faff; padding: 40px;">
-              <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
-                <div style="padding: 40px; text-align: center;">
-                  <img src="https://i.ibb.co.com/logo.png" alt="MED-AI Logo" style="height: 60px; margin-bottom: 30px;">
-                  <div style="background: linear-gradient(135deg, #2e77d0, #22d3ee); padding: 20px; border-radius: 12px;">
-                    <h2 style="color: white; margin: 0;">Nouveau message de {name}</h2>
-                  </div>
                   <div style="padding: 30px 20px; text-align: left;">
                     <div style="margin-bottom: 25px;">
                       <p style="font-size: 16px; color: #444; margin: 8px 0;">
