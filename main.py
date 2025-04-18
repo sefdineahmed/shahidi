@@ -1,28 +1,39 @@
-# main.py
-
 import streamlit as st
+from onglets import accueil, analyse_descriptive, modelisation, a_propos, contact
 
-# ⇦ DÉPLACÉ ICI, tout en haut avant quoi que ce soit d'autre
+# Configuration de la page
 st.set_page_config(
-    page_title="Shahidi - Prédiction de survie",
-    layout="centered",
+    page_title="Shahidi",
+    page_icon="⚕️",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
-from onglets import accueil, analyse_descriptive, modelisation, a_propos, contact
-
+# Dictionnaire des pages
 PAGES = {
-    "Accueil":    accueil,
-    "Analyse":    analyse_descriptive,
-    "Modélisation": modelisation,
-    "À propos":   a_propos,
-    "Contact":    contact
+    "🏠 Accueil": accueil,
+    "📊 Analyse": analyse_descriptive,
+    "🤖 Prédiction": modelisation,
+    "📚 À Propos": a_propos,
+    "📩 Contact": contact
 }
 
 def main():
-    menu = st.sidebar.radio("Navigation", list(PAGES.keys()))
-    page_func = PAGES[menu]
-    page_func()
+    st.markdown(
+        """
+        <style>
+        .stTabs [data-baseweb="tab"] {
+            justify-content: flex-end;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    tabs = st.tabs(list(PAGES.keys()))
+    for tab, (page_name, page_func) in zip(tabs, PAGES.items()):
+        with tab:
+            page_func()
 
 if __name__ == "__main__":
     main()
