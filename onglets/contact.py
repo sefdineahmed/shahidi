@@ -114,7 +114,7 @@ def contact():
                 <div class='info-item'>
                     <div style="margin-right: 1rem;">🏥</div>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">Clinique SHAHIDI-AI</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">🏥 Clinique SHAHIDI-AI</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
                             123 Rue de la Santé<br>
                             Dakar, Sénégal
@@ -125,7 +125,7 @@ def contact():
                 <div class='info-item'>
                     <div style="margin-right: 1rem;">📞</div>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">Téléphone</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">📞 Téléphone</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
                             +221 77 808 09 42<br>
                             Urgences 24/7
@@ -136,11 +136,10 @@ def contact():
                 <div class='info-item'>
                     <div style="margin-right: 1rem;">🌐</div>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">Réseaux Sociaux</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">🌐 Réseaux Sociaux</h4>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🔗 LinkedIn</a>
                             <a href="https://twitter.com/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🐦 Twitter</a>
-        
                         </div>
                     </div>
                 </div>
