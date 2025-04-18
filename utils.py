@@ -127,22 +127,16 @@ def save_new_patient(new_patient: dict, filename: str = "data/data.xlsx"):
         new_patient_clean = {k: (float(v) if isinstance(v, (int, float)) else str(v)) for k, v in new_patient.items()}
 
         new_entry = pd.DataFrame([new_patient_clean])
-
         if os.path.exists(filename):
-            # Charger les données existantes
+            # Charger l'existant
             df = pd.read_excel(filename)
             # Ajouter la nouvelle entrée
             df = pd.concat([df, new_entry], ignore_index=True)
         else:
-            # Si le fichier n'existe pas, on crée une nouvelle DataFrame
+            # Si le fichier n'existe pas, créer un nouveau DataFrame
             df = new_entry
-
-        # Sauvegarder les données dans le fichier Excel
+        # Sauvegarder dans un fichier Excel
         df.to_excel(filename, index=False)
-
-        # Message de succès
-        st.success("✅ Les informations du nouveau patient ont été enregistrées.")
-        
     except Exception as e:
         raise RuntimeError(f"Erreur lors de l'enregistrement des données : {e}")
 
