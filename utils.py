@@ -117,14 +117,14 @@ def encode_features(inputs):
     """
     Encode les variables cliniques :
     - Pour 'AGE', on conserve la valeur numérique.
-    - Pour les autres, "OUI" devient 1 et toute autre valeur 0.
+    - Pour les autres, "OUI" devient "OUI" et toute autre valeur devient "NON".
     """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
-            encoded[k] = v
+            encoded[k] = v  # L'âge reste numérique.
         else:
-            encoded[k] = 1 if v.upper() == "OUI" else 0
+            encoded[k] = "OUI" if v.upper() == "OUI" else "NON"  # "OUI" ou "NON" pour les autres.
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data):
@@ -165,14 +165,22 @@ def save_new_patient(new_patient_data):
     Enregistre les informations d'un nouveau patient dans le fichier Excel
     et déclenche l'actualisation incrémentale du modèle.
     """
-    df = load_data()
-    new_df = pd.DataFrame([new_patient_data])
+    df = load_data()  # Charger les données existantes depuis le fichier Excel.
+    new_df = pd.DataFrame([new_patient_data])  # Convertir les données du nouveau patient en DataFrame.
+    
+    # Assurer que les valeurs sont bien formatées en 'OUI'/'NON' avant l'enregistrement
+    for column in new_df.columns:
+        if column != "AGE":
+            new_df[column] = new_df[column].upper() if new_df[column].upper() == "OUI" else "NON"
+
+    # Ajout des nouvelles données dans le DataFrame existant
     df = pd.concat([df, new_df], ignore_index=True)
+
     try:
-        df.to_excel(DATA_PATH, index=False)
+        df.to_excel(DATA_PATH, index=False)  # Enregistrement dans le fichier Excel.
         st.success("Les informations du nouveau patient ont été enregistrées.")
-        load_data.clear()  # Vider le cache des données pour forcer le rechargement
-        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données
+        load_data.clear()  # Vider le cache des données pour forcer le rechargement.
+        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données.
     except Exception as e:
         st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
@@ -181,14 +189,9 @@ def update_deepsurv_model():
     Recharge l'ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
     avec les nouvelles informations patient.
     
-    Hypothèses :
-    - La base de données contient toutes les variables définies dans FEATURE_CONFIG.
-    - La colonne 'Tempsdesuivi' contient le temps de suivi (durée) en mois.
-    - La colonne 'Deces' est codée par 'OUI' pour l'événement survenu et toute autre valeur pour un censuré.
-    
     Cette fonction effectue un entraînement supplémentaire (fine-tuning) sur l'ensemble des données.
     """
-    df = load_data()
+    df = load_data()  # Charger toutes les données à partir du fichier Excel.
     if df.empty:
         st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
         return
@@ -196,13 +199,13 @@ def update_deepsurv_model():
     # Préparation des features
     feature_cols = list(FEATURE_CONFIG.keys())
     X = df[feature_cols].copy()
+
+    # Assurer que toutes les colonnes sont correctement encodées (OUI ou NON)
     for col in feature_cols:
         if col != "AGE":
             X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
 
     # Préparation des cibles
-    # La première colonne de y correspond à l'événement : 1 si 'Deces' vaut "OUI", 0 sinon.
-    # La deuxième colonne correspond à la durée de suivi (Tempsdesuivi).
     y_duration = df["Tempsdesuivi"].values
     y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
     y = np.column_stack([y_event, y_duration])
@@ -213,17 +216,9 @@ def update_deepsurv_model():
         st.error("Le modèle DeepSurv n'a pas pu être chargé pour la mise à jour.")
         return
 
-    def cox_loss(y_true, y_pred):
-        event = tf.cast(y_true[:, 0], dtype=tf.float32)
-        risk = y_pred[:, 0]
-        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
-        loss = -tf.reduce_mean((risk - log_risk) * event)
-        return loss
-
-    model.compile(optimizer=adam, loss=cox_loss)
-    # Entraînement complémentaire (fine-tuning)
+    model.compile(optimizer=adam, loss=cox_loss)  # Utilisation de la fonction de perte customisée.
     st.info("Mise à jour du modèle DeepSurv en cours...")
-    model.fit(X, y, epochs=10, batch_size=32)
+    model.fit(X, y, epochs=10, batch_size=32)  # Entraînement du modèle avec les nouvelles données.
 
     # Sauvegarde du modèle mis à jour
     model.save(MODELS["DeepSurv"])
