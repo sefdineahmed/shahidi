@@ -118,7 +118,7 @@ def clean_prediction(prediction):
     return max(pred_val, 1)
 
 # --- Sauvegarde d'un nouveau patient ---
-def save_new_patient(new_patient: dict, filename: str = "data/suivi.csv"):
+def save_new_patient(new_patient: dict, filename: str = "data/data.xlsx"):
     import pandas as pd
     import os
 
