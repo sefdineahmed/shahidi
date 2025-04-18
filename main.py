@@ -1,5 +1,3 @@
-from onglets.accueil import accueil
-from onglets.modelisation import modelisation 
 import streamlit as st
 from onglets import accueil, analyse_descriptive, modelisation, a_propos, contact
 

@@ -24,11 +24,11 @@ except Exception as e:
 # Définir l'optimiseur
 adam = Adam()
 
-# Chemins des ressources
+# Chemin vers les ressources
 DATA_PATH = "data/data.xlsx"
 LOGO_PATH = "assets/background.jpeg"
 
-# Modèles disponibles
+# Pour ce projet, nous utilisons uniquement le modèle DeepSurv
 MODELS = {
     "DeepSurv": "models/deepsurv.keras",
     "CoxPH": "models/coxph.joblib"
@@ -93,36 +93,31 @@ def load_data():
 
 @st.cache_resource(show_spinner=False)
 def load_model(model_path):
-    """Charge le modèle sélectionné (DeepSurv ou CoxPH)"""
+    """
+    Charge le modèle DeepSurv pré-entraîné.
+    """
     if not os.path.exists(model_path):
         st.error(f"❌ Modèle introuvable : {model_path}")
         return None
 
     try:
-        if model_path.endswith(".keras"):
-            # Chargement DeepSurv avec fonction de perte personnalisée
-            def cox_loss(y_true, y_pred):
-                event = tf.cast(y_true[:, 0], dtype=tf.float32)
-                risk = y_pred[:, 0]
-                log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True)
-                loss = -tf.reduce_mean((risk - log_risk) * event)
-                return loss
-            return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
-        elif model_path.endswith(".joblib"):
-            # Chargement CoxPH avec joblib
-            return joblib.load(model_path)
-        else:
-            st.error("Format de modèle non supporté")
-            return None
+        # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
+        def cox_loss(y_true, y_pred):
+            event = tf.cast(y_true[:, 0], dtype=tf.float32)
+            risk = y_pred[:, 0]
+            log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+            loss = -tf.reduce_mean((risk - log_risk) * event)
+            return loss
+        return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
-        st.error(f"❌ Erreur de chargement du modèle : {e}")
+        st.error(f"❌ Erreur lors du chargement du modèle : {e}")
         return None
 
 def encode_features(inputs):
     """
     Encode les variables cliniques :
-    - 'AGE' : valeur numérique
-    - Autres : 1 pour "OUI", 0 sinon
+    - Pour 'AGE', on conserve la valeur numérique.
+    - Pour les autres, "OUI" devient 1 et toute autre valeur 0.
     """
     encoded = {}
     for k, v in inputs.items():
@@ -133,28 +128,32 @@ def encode_features(inputs):
     return pd.DataFrame([encoded])
 
 def predict_survival(model, data):
-    """Prédiction générique pour les deux modèles"""
-    try:
-        # Prédiction selon le type de modèle
-        if isinstance(model, tf.keras.Model):
-            # DeepSurv
-            raw_pred = model.predict(data)
-            raw_pred = raw_pred[0][0] if raw_pred.ndim == 2 else raw_pred[0]
-        else:
-            # CoxPH (format sklearn)
-            raw_pred = model.predict(data.values)
-            raw_pred = raw_pred[0] if isinstance(raw_pred, np.ndarray) else raw_pred
-
-        # Conversion risque -> survie médiane
+    """
+    Effectue la prédiction du temps de survie avec le modèle DeepSurv.
+    
+    Correction : on transforme la prédiction brute (risque) en une estimation de la survie médiane.
+    En utilisant l'hypothèse d'une distribution exponentielle, la survie médiane est estimée par :
+        survie = baseline_median * exp(-risk)
+    Ainsi, si tous les champs sont "Non" (risk proche de 0), la survie sera d'environ 60 mois.
+    """
+    if hasattr(model, "predict"):
+        raw_pred = model.predict(data)
+        if isinstance(raw_pred, np.ndarray):
+            if raw_pred.ndim == 2:
+                raw_pred = raw_pred[0][0]
+            else:
+                raw_pred = raw_pred[0]
         baseline_median = 60.0
         est_time = baseline_median * np.exp(-raw_pred)
         return est_time
-    except Exception as e:
-        st.error(f"Erreur de prédiction : {e}")
-        return None
+    else:
+        raise ValueError("Le modèle DeepSurv ne supporte pas la prédiction.")
 
 def clean_prediction(prediction):
-    """Nettoyage des prédictions"""
+    """
+    Nettoie la prédiction pour éviter les valeurs négatives.
+    Pour DeepSurv, on s'assure d'avoir au moins 1 mois.
+    """
     try:
         pred_val = float(prediction)
     except Exception:
@@ -162,68 +161,70 @@ def clean_prediction(prediction):
     return max(pred_val, 1)
 
 def save_new_patient(new_patient_data):
-    """Sauvegarde un nouveau patient et met à jour les modèles"""
+    """
+    Enregistre les informations d'un nouveau patient dans le fichier Excel
+    et déclenche l'actualisation incrémentale du modèle.
+    """
     df = load_data()
     new_df = pd.DataFrame([new_patient_data])
     df = pd.concat([df, new_df], ignore_index=True)
     try:
         df.to_excel(DATA_PATH, index=False)
-        st.success("Patient enregistré avec succès !")
-        load_data.clear()
-        update_deepsurv_model()
+        st.success("Les informations du nouveau patient ont été enregistrées.")
+        load_data.clear()  # Vider le cache des données pour forcer le rechargement
+        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données
     except Exception as e:
-        st.error(f"Erreur d'enregistrement : {e}")
+        st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
 def update_deepsurv_model():
-    """Mise à jour du modèle DeepSurv avec toutes les données"""
+    """
+    Recharge l'ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
+    avec les nouvelles informations patient.
+    
+    Hypothèses :
+    - La base de données contient toutes les variables définies dans FEATURE_CONFIG.
+    - La colonne 'Tempsdesuivi' contient le temps de suivi (durée) en mois.
+    - La colonne 'Deces' est codée par 'OUI' pour l'événement survenu et toute autre valeur pour un censuré.
+    
+    Cette fonction effectue un entraînement supplémentaire (fine-tuning) sur l'ensemble des données.
+    """
     df = load_data()
     if df.empty:
-        st.warning("Base de données vide !")
+        st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
         return
 
-    # Préparation des données
+    # Préparation des features
     feature_cols = list(FEATURE_CONFIG.keys())
     X = df[feature_cols].copy()
     for col in feature_cols:
         if col != "AGE":
             X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
 
+    # Préparation des cibles
+    # La première colonne de y correspond à l'événement : 1 si 'Deces' vaut "OUI", 0 sinon.
+    # La deuxième colonne correspond à la durée de suivi (Tempsdesuivi).
     y_duration = df["Tempsdesuivi"].values
     y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
     y = np.column_stack([y_event, y_duration])
 
-    # Chargement et entraînement
+    # Chargement et compilation du modèle DeepSurv
     model = load_model(MODELS["DeepSurv"])
     if model is None:
+        st.error("Le modèle DeepSurv n'a pas pu être chargé pour la mise à jour.")
         return
 
     def cox_loss(y_true, y_pred):
         event = tf.cast(y_true[:, 0], dtype=tf.float32)
         risk = y_pred[:, 0]
-        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True)
+        log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
         loss = -tf.reduce_mean((risk - log_risk) * event)
         return loss
 
     model.compile(optimizer=adam, loss=cox_loss)
+    # Entraînement complémentaire (fine-tuning)
+    st.info("Mise à jour du modèle DeepSurv en cours...")
     model.fit(X, y, epochs=10, batch_size=32)
-    model.save(MODELS["DeepSurv"])
-    st.success("Modèle DeepSurv mis à jour !")
 
-# Fonction d'affichage des résultats
-def display_results(prediction):
-    """Affiche les résultats de prédiction de manière visuelle"""
-    months = clean_prediction(prediction)
-    fig = px.bar(
-        x=["Survie médiane estimée"],
-        y=[months],
-        labels={'x': '', 'y': 'Mois'},
-        color_discrete_sequence=['#2ecc71'],
-        text_auto=True
-    )
-    fig.update_layout(
-        title="Résultat de la prédiction",
-        showlegend=False,
-        yaxis_range=[0, 120]
-    )
-    st.plotly_chart(fig)
-    st.info(f"**Estimation finale :** {months:.1f} mois")
+    # Sauvegarde du modèle mis à jour
+    model.save(MODELS["DeepSurv"])
+    st.success("Le modèle DeepSurv a été actualisé avec succès.")
