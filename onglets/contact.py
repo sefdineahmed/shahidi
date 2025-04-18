@@ -4,7 +4,7 @@ import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# Configuration SMTP (conservée identique)
+# Configuration SMTP (gardée identique)
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 EMAIL_SENDER = "votre-email@gmail.com"
@@ -60,17 +60,19 @@ def contact():
         .contact-header {
             text-align: center;
             margin-bottom: 2rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #ddd;
+            padding: 1rem;
         }
         
         .form-card {
+            background: white;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
         }
         
         .input-field {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1rem;
         }
         
         .input-field label {
@@ -81,7 +83,7 @@ def contact():
         
         .stTextInput>div>div>input,
         .stTextArea>div>div>textarea {
-            border: 1px solid #ddd !important;
+            border: 1px solid #ccc !important;
             border-radius: 4px !important;
             padding: 0.8rem !important;
         }
@@ -96,21 +98,20 @@ def contact():
         .contact-info-card {
             padding: 1rem;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 1rem;
+            border-radius: 8px;
         }
         
         .info-item {
             margin-bottom: 1rem;
-            padding: 0.5rem 0;
+            padding: 0.5rem;
         }
-        
+
         .footer {
             text-align: center;
             padding: 1rem 0;
             margin-top: 2rem;
-            color: #666;
             border-top: 1px solid #ddd;
+            color: #666;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -122,36 +123,30 @@ def contact():
         st.markdown("""
             <div class='contact-header'>
                 <h1>Contactez Notre Équipe</h1>
-                <p>Nous répondons sous 24 heures</p>
+                <p>Une question ? Un projet ? Nous répondons sous 24h</p>
             </div>
         """, unsafe_allow_html=True)
 
-        # Grille principale
-        col1, col2 = st.columns([2, 1], gap="large")
+        col1, col2 = st.columns([2, 1], gap="medium")
         
         with col1:
             with st.form("contact_form"):
                 st.markdown("<div class='form-card'>", unsafe_allow_html=True)
-                
                 name = st.text_input("Nom Complet *")
                 email = st.text_input("Email *")
                 message = st.text_area("Message *", height=150)
-                
                 submitted = st.form_submit_button("Envoyer", use_container_width=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
         with col2:
-            # Informations de contact simplifiées
             st.markdown("<div class='contact-info-card'>", unsafe_allow_html=True)
             st.markdown("""
                 <h3>Coordonnées</h3>
-                
                 <div class='info-item'>
                     <p><strong>Clinique SHAHIDI-AI</strong><br>
                     123 Rue de la Santé<br>
                     Dakar, Sénégal</p>
                 </div>
-                
                 <div class='info-item'>
                     <p><strong>Téléphone</strong><br>
                     +221 77 808 09 42</p>
@@ -159,7 +154,6 @@ def contact():
             """, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Validation et envoi
         if submitted:
             if not all([name, email, message]):
                 st.error("Tous les champs obligatoires (*) doivent être remplis")
@@ -168,12 +162,15 @@ def contact():
             else:
                 with st.spinner("Envoi en cours..."):
                     if send_email(name, email, message):
-                        st.success("Message envoyé avec succès")
+                        st.success("Message envoyé avec succès!")
                         st.balloons()
 
         # Pied de page simplifié
         st.markdown("""
             <div class="footer">
-                <p>© 2025 MED-AI | Développé par Ahmed Sefdine</p>
+                <p>© 2025 MED-AI - Ahmed Sefdine</p>
             </div>
         """, unsafe_allow_html=True)
+
+# Appel de la fonction contact
+contact()
