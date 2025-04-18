@@ -1,4 +1,4 @@
-# prediction.py
+# onglets/prediction.py
 
 import streamlit as st
 import numpy as np
@@ -9,7 +9,8 @@ from utils import (
     predict_survival, clean_prediction, save_new_patient
 )
 
-def main():
+def modelisation():
+    """Page Streamlit pour la modélisation / prédiction de survie."""
     st.set_page_config(page_title="Prédiction survie", layout="centered")
     st.sidebar.title("Sélection du modèle")
     model_name = st.sidebar.selectbox("Modèle", list(MODELS.keys()))
@@ -45,13 +46,13 @@ def main():
         for col in features:
             if col != "AGE":
                 X_train[col] = X_train[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
-        y_time = df["Tempsdesuivi"].astype(float).values
+        y_time  = df["Tempsdesuivi"].astype(float).values
         y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
         y_train = np.column_stack([y_event, y_time])
 
         thresholds, medians = calibrate_median_survival_by_risk_group(model, X_train, y_train)
         raw_pred = predict_survival(model, data_df, thresholds, medians)
-        pred = clean_prediction(raw_pred)
+        pred     = clean_prediction(raw_pred)
 
         st.success(f"🔮 Temps de survie estimé : **{pred:.1f}** mois")
 
@@ -64,5 +65,6 @@ def main():
             except Exception as e:
                 st.error(f"Erreur sauvegarde : {e}")
 
+# Permet d’exécuter la page en mode standalone
 if __name__ == "__main__":
-    main()
+    modelisation()
