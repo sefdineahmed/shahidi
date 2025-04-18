@@ -29,6 +29,7 @@ def cox_loss(y_true, y_pred):
 # Configuration
 adam = Adam()
 DATA_PATH = "data/data.xlsx"
+LOGO_PATH = "assets/background.jpeg"
 MODELS = {
     "DeepSurv": "models/deepsurv.keras",
     "CoxPH": "models/coxph.joblib"
