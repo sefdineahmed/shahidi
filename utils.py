@@ -24,6 +24,17 @@ except Exception as e:
 # Définir l'optimiseur
 adam = Adam()
 
+# Définir la fonction de perte Cox
+def cox_loss(y_true, y_pred):
+    """
+    Définition de la fonction de perte Cox utilisée lors de l'entraînement du modèle DeepSurv.
+    """
+    event = tf.cast(y_true[:, 0], dtype=tf.float32)
+    risk = y_pred[:, 0]
+    log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+    loss = -tf.reduce_mean((risk - log_risk) * event)
+    return loss
+
 # Chemin vers les ressources
 DATA_PATH = "data/data.xlsx"
 LOGO_PATH = "assets/background.jpeg"
@@ -101,13 +112,6 @@ def load_model(model_path):
         return None
 
     try:
-        # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
-        def cox_loss(y_true, y_pred):
-            event = tf.cast(y_true[:, 0], dtype=tf.float32)
-            risk = y_pred[:, 0]
-            log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
-            loss = -tf.reduce_mean((risk - log_risk) * event)
-            return loss
         return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement du modèle : {e}")
