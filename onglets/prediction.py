@@ -4,7 +4,9 @@ import numpy as np
 import plotly.express as px  
 from datetime import date  
 import io  
+import joblib
 from fpdf import FPDF  
+
 from utils import (
     FEATURE_CONFIG,
     encode_features,
@@ -15,7 +17,7 @@ from utils import (
     MODELS
 )
 
-# Style CSS personnalisé  
+# CSS customisé
 st.markdown("""  
 <style>  
     :root {  
@@ -23,40 +25,12 @@ st.markdown("""
         --secondary: #1d5ba6;  
         --accent: #22d3ee;  
     }  
-    .st-emotion-cache-1y4p8pa {  
-        padding: 2rem 1rem;  
-    }  
-    .header-card {  
-        background: rgba(255, 255, 255, 0.9);  
-        border-radius: 15px;  
-        padding: 2rem;  
-        margin: 1rem 0;  
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  
-    }  
-    .prediction-card {  
-        background: linear-gradient(135deg, #f8fafc, #ffffff);  
-        border-left: 4px solid var(--primary);  
-        padding: 1.5rem;  
-        margin: 1rem 0;  
-    }  
-    .model-selector {  
-        border-radius: 12px !important;  
-        padding: 1rem !important;  
-        border: 2px solid var(--primary) !important;  
-    }  
-    .stButton>button {  
-        background: linear-gradient(45deg, var(--primary), var(--secondary)) !important;  
-        color: white !important;  
-        border-radius: 8px !important;  
-        padding: 0.8rem 2rem !important;  
-        transition: all 0.3s !important;  
-    }  
-    .stButton>button:hover {  
-        transform: translateY(-2px);  
-        box-shadow: 0 4px 15px rgba(46, 119, 208, 0.4) !important;  
-    }  
+    .header-card { background: rgba(255,255,255,0.9); border-radius: 15px; padding: 2rem; margin: 1rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }  
+    .prediction-card { background: linear-gradient(135deg, #f8fafc, #ffffff); border-left: 4px solid var(--primary); padding: 1.5rem; margin: 1rem 0; }  
+    .stButton>button { background: linear-gradient(45deg, var(--primary), var(--secondary)) !important; color: white !important; border-radius: 8px !important; padding: 0.8rem 2rem !important; transition: all 0.3s !important; }  
+    .stButton>button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46, 119, 208, 0.4) !important; }  
 </style>  
-""", unsafe_allow_html=True)  
+""", unsafe_allow_html=True)
 
 def generate_pdf_report(input_data, cleaned_pred):  
     pdf = FPDF()  
@@ -74,11 +48,10 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf.set_fill_color(240, 248, 255)  
   
     pdf.set_font('Arial', '', 12)  
-    col_widths = [60, 60]  
     for key, value in input_data.items():  
         if key not in ["Tempsdesuivi", "Deces"]:  
-            pdf.cell(col_widths[0], 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
-            pdf.cell(col_widths[1], 8, str(value), 1, 1, 'L')  
+            pdf.cell(60, 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
+            pdf.cell(60, 8, str(value), 1, 1, 'L')  
   
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
@@ -91,6 +64,13 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
 
+def load_calibration():
+    try:
+        cal = joblib.load("models/calibration.pkl")
+        return cal.get("thresholds", None), cal.get("medians", None)
+    except Exception:
+        return None, None
+
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
   
@@ -102,90 +82,63 @@ def modelisation():
         for i, (feature, label) in enumerate(FEATURE_CONFIG.items()):  
             with cols[i % 3]:  
                 if feature == "AGE":  
-                    inputs[feature] = st.number_input(  
-                        label,   
-                        min_value=18,   
-                        max_value=120,   
-                        value=50,  
-                        help="Âge du patient en années"  
-                    )  
+                    inputs[feature] = st.number_input(label, min_value=18, max_value=120, value=50)  
                 else:  
-                    inputs[feature] = st.selectbox(  
-                        label,   
-                        options=["NON", "OUI"],  
-                        help="Présence de la caractéristique clinique"  
-                    )  
+                    inputs[feature] = st.selectbox(label, options=["NON", "OUI"])  
         st.markdown("</div>", unsafe_allow_html=True)  
-  
+
     input_df = encode_features(inputs)
-    input_df = input_df.apply(pd.to_numeric, errors='ignore')  # Assurer que tout est converti en numérique sauf si ce n'est pas possible
-    
+    input_df = input_df.apply(pd.to_numeric, errors='coerce')
+
     model_name = "DeepSurv"  
-  
+
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
-                model = load_model(MODELS[model_name])  
-                pred = predict_survival(model, input_df)  
-                cleaned_pred = clean_prediction(pred)  
-                
-                # Préparation des données enregistrables (version texte des inputs)
+                model = load_model(MODELS[model_name])
+                thresholds, medians = load_calibration()
+                pred = predict_survival(model, input_df, thresholds, medians)
+                cleaned_pred = clean_prediction(pred)
+
                 patient_data = inputs.copy()  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
                 patient_data["Deces"] = "OUI"  
 
-                # Enregistrement dans le fichier de suivi
-                save_new_patient(patient_data)  
-                
-                with st.container():  
-                    st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
-                    col1, col2 = st.columns([1, 2])  
-                    with col1:  
-                        st.metric(  
-                            label="**Survie Médiane Estimée**",   
-                            value=f"{cleaned_pred:.0f} mois",  
-                            help="Durée médiane de survie prédite"  
-                        )  
-                    with col2:  
-                        months = min(int(cleaned_pred), 120)  
-                        survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]  
-                        fig = px.line(  
-                            x=list(range(months)),  
-                            y=survival_curve,  
-                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},  
-                            color_discrete_sequence=['#2e77d0']  
-                        )  
-                        st.plotly_chart(fig, use_container_width=True)  
-                    st.markdown("</div>", unsafe_allow_html=True)  
+                save_new_patient(patient_data)
 
-                    # Génération du rapport PDF
-                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
-                    st.download_button(  
-                        label="📥 Télécharger le Rapport Complet",  
-                        data=pdf_bytes,  
-                        file_name="rapport_medical.pdf",  
-                        mime="application/pdf",  
-                        use_container_width=True  
-                    )  
-                    
+                st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
+                col1, col2 = st.columns([1, 2])  
+                with col1:  
+                    st.metric("**Survie Médiane Estimée**", f"{cleaned_pred:.0f} mois")
+
+                    # Affichage du groupe de risque estimé
+                    if thresholds:
+                        risk_score = float(model.predict(input_df).flatten()[0])
+                        group = sum(risk_score > t for t in thresholds)
+                        group_label = ["🟢 Faible", "🟠 Moyen", "🔴 Élevé"][min(group, 2)]
+                        st.info(f"**Groupe de Risque Estimé** : {group_label}")
+
+                with col2:  
+                    months = min(int(cleaned_pred), 120)  
+                    survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]  
+                    fig = px.line(x=list(range(months)), y=survival_curve, labels={"x": "Mois", "y": "Probabilité de Survie (%)"}, color_discrete_sequence=['#2e77d0'])  
+                    st.plotly_chart(fig, use_container_width=True)  
+
+                st.markdown("</div>", unsafe_allow_html=True)  
+
+                pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
+                st.download_button("📥 Télécharger le Rapport Complet", data=pdf_bytes, file_name="rapport_medical.pdf", mime="application/pdf", use_container_width=True)  
+
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
-  
+
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
-        treatment_cols = st.columns(2)  
-        with treatment_cols[0]:  
-            selected_treatments = st.multiselect(  
-                "Options Thérapeutiques",  
-                options=["Chimiothérapie", "Exclusive"],  
-                help="Sélectionner les traitements à comparer"  
-            )  
-        with treatment_cols[1]:  
-            follow_up_date = st.date_input(  
-                "Date de Suivi Recommandée",  
-                value=date.today(),  
-                help="Date préconisée pour le prochain examen"  
-            )  
+        cols = st.columns(2)  
+        with cols[0]:  
+            selected_treatments = st.multiselect("Options Thérapeutiques", options=["Chimiothérapie", "Exclusive"])  
+        with cols[1]:  
+            follow_up_date = st.date_input("Date de Suivi Recommandée", value=date.today())  
 
         if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
             if selected_treatments:  
