@@ -11,7 +11,8 @@ from utils import (
     predict_survival,
     clean_prediction,
     save_new_patient,
-    MODELS
+    MODELS,
+    TEAM_MEMBERS
 )
 
 # Style CSS personnalisé  
@@ -57,7 +58,7 @@ st.markdown("""
 </style>  
 """, unsafe_allow_html=True)  
 
-def generate_pdf_report(input_data, cleaned_pred):  
+def generate_pdf_report(input_data, cleaned_pred, model_name):  
     pdf = FPDF()  
     pdf.add_page()  
     pdf.set_font('Arial', 'B', 24)  
@@ -81,17 +82,57 @@ def generate_pdf_report(input_data, cleaned_pred):
     pdf.set_font('Arial', 'B', 16)  
     pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
     pdf.set_font('Arial', '', 14)  
-    pdf.cell(0, 8, "Modèle utilisé : DeepSurv", ln=True)  
+    pdf.cell(0, 8, f"Modèle utilisé : {model_name}", ln=True)  
     pdf.set_text_color(46, 119, 208)  
     pdf.cell(0, 8, f"Survie médiane estimée : {cleaned_pred:.1f} mois", ln=True)  
   
     pdf_buffer = io.BytesIO()  
     pdf.output(pdf_buffer)  
     return pdf_buffer.getvalue()  
-  
+
+def show_model_info(selected_model):
+    """Affiche les informations du modèle sélectionné"""
+    model_info = {
+        "DeepSurv": {
+            "description": "Réseau de neurones profond pour l'analyse de survie",
+            "avantages": [
+                "Capture des relations non linéaires",
+                "Adapté aux données complexes",
+                "Mise à jour incrémentale"
+            ]
+        },
+        "CoxPH": {
+            "description": "Modèle de régression de Cox proportionnelle",
+            "avantages": [
+                "Interprétabilité statistique",
+                "Rapide pour les petites données",
+                "Standard en recherche médicale"
+            ]
+        }
+    }
+    
+    with st.sidebar.expander("ℹ️ Info Modèle", expanded=True):
+        st.markdown(f"**{selected_model}**")
+        st.caption(model_info[selected_model]["description"])
+        st.markdown("**Avantages :**")
+        for avantage in model_info[selected_model]["avantages"]:
+            st.markdown(f"- {avantage}")
+
 def modelisation():  
     st.title("📊 Prédiction Intelligente de Survie")  
-  
+
+    # Sélection du modèle dans la sidebar
+    with st.sidebar:
+        st.subheader("⚙️ Configuration")
+        selected_model = st.selectbox(
+            "Modèle de prédiction",
+            options=list(MODELS.keys()),
+            format_func=lambda x: f"{x} - {'Deep Learning' if x == 'DeepSurv' else 'Modèle Statistique'}",
+            help="Sélectionnez le modèle à utiliser pour la prédiction"
+        )
+        show_model_info(selected_model)
+
+    # Section de saisie patient
     with st.container():  
         st.markdown("<div class='header-card'>", unsafe_allow_html=True)  
         st.subheader("📋 Profil Patient")  
@@ -114,25 +155,24 @@ def modelisation():
                         help="Présence de la caractéristique clinique"  
                     )  
         st.markdown("</div>", unsafe_allow_html=True)  
-  
-    input_df = encode_features(inputs)  
-    # Utilisation directe du modèle DeepSurv
-    model_name = "DeepSurv"  
+
+    # Prédiction et résultats
     if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
         with st.spinner("Analyse en cours..."):  
             try:  
-                model = load_model(MODELS[model_name])  
+                # Chargement modèle
+                model = load_model(MODELS[selected_model])  
+                input_df = encode_features(inputs)
                 pred = predict_survival(model, input_df)  
                 cleaned_pred = clean_prediction(pred)  
-  
-                # Enrichissement des données à enregistrer  
+
+                # Enregistrement patient
                 patient_data = input_df.to_dict(orient='records')[0]  
                 patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
-                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
-  
-                # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
+                patient_data["Deces"] = "OUI"  
                 save_new_patient(patient_data)  
-  
+
+                # Affichage résultats
                 with st.container():  
                     st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
                     col1, col2 = st.columns([1, 2])  
@@ -143,8 +183,6 @@ def modelisation():
                             help="Durée médiane de survie prédite"  
                         )  
                     with col2:  
-                        # Pour la courbe de survie, on utilise une décroissance exponentielle 
-                        # caractéristique d'une distribution exponentielle avec médiane 'cleaned_pred'
                         months = min(int(cleaned_pred), 120)  
                         survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]
                         fig = px.line(  
@@ -155,9 +193,9 @@ def modelisation():
                         )  
                         st.plotly_chart(fig, use_container_width=True)  
                     st.markdown("</div>", unsafe_allow_html=True)  
-  
-                    # Génération et téléchargement du rapport PDF  
-                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
+
+                    # Génération PDF
+                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred, selected_model)  
                     st.download_button(  
                         label="📥 Télécharger le Rapport Complet",  
                         data=pdf_bytes,  
@@ -167,8 +205,8 @@ def modelisation():
                     )  
             except Exception as e:  
                 st.error(f"Erreur de prédiction : {str(e)}")  
-  
-    # Suivi thérapeutique  
+
+    # Section suivi thérapeutique
     st.markdown("---")  
     with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
         treatment_cols = st.columns(2)  
@@ -184,12 +222,12 @@ def modelisation():
                 value=date.today(),  
                 help="Date préconisée pour le prochain examen"  
             )  
-  
+
         if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
             if selected_treatments:  
                 st.toast("Plan de traitement enregistré avec succès !")  
             else:  
                 st.warning("Veuillez sélectionner au moins un traitement")  
-  
+
 if __name__ == "__main__":  
-    modelisation()
+    modelisation()  
