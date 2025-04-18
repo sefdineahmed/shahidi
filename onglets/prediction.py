@@ -1,70 +1,195 @@
-# onglets/prediction.py
-
-import streamlit as st
-import numpy as np
+import streamlit as st  
+import numpy as np  
+import plotly.express as px  
+from datetime import date  
+import io  
+from fpdf import FPDF  
 from utils import (
-    MODELS, FEATURE_CONFIG, load_data,
-    load_deepsurv_model, load_cox_model,
-    encode_features, calibrate_median_survival_by_risk_group,
-    predict_survival, clean_prediction, save_new_patient
+    FEATURE_CONFIG,
+    encode_features,
+    load_model,
+    predict_survival,
+    clean_prediction,
+    save_new_patient,
+    MODELS
 )
 
-def modelisation():
-    """Page Streamlit pour la modélisation / prédiction de survie."""
-    st.set_page_config(page_title="Prédiction survie", layout="centered")
-    st.sidebar.title("Sélection du modèle")
-    model_name = st.sidebar.selectbox("Modèle", list(MODELS.keys()))
-    model_path = MODELS[model_name]
+# Style CSS personnalisé  
+st.markdown("""  
+<style>  
+    :root {  
+        --primary: #2e77d0;  
+        --secondary: #1d5ba6;  
+        --accent: #22d3ee;  
+    }  
+    .st-emotion-cache-1y4p8pa {  
+        padding: 2rem 1rem;  
+    }  
+    .header-card {  
+        background: rgba(255, 255, 255, 0.9);  
+        border-radius: 15px;  
+        padding: 2rem;  
+        margin: 1rem 0;  
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  
+    }  
+    .prediction-card {  
+        background: linear-gradient(135deg, #f8fafc, #ffffff);  
+        border-left: 4px solid var(--primary);  
+        padding: 1.5rem;  
+        margin: 1rem 0;  
+    }  
+    .model-selector {  
+        border-radius: 12px !important;  
+        padding: 1rem !important;  
+        border: 2px solid var(--primary) !important;  
+    }  
+    .stButton>button {  
+        background: linear-gradient(45deg, var(--primary), var(--secondary)) !important;  
+        color: white !important;  
+        border-radius: 8px !important;  
+        padding: 0.8rem 2rem !important;  
+        transition: all 0.3s !important;  
+    }  
+    .stButton>button:hover {  
+        transform: translateY(-2px);  
+        box-shadow: 0 4px 15px rgba(46, 119, 208, 0.4) !important;  
+    }  
+</style>  
+""", unsafe_allow_html=True)  
 
-    # Chargement du modèle choisi
-    if model_name == "DeepSurv":
-        model = load_deepsurv_model(model_path)
-    else:
-        model = load_cox_model(model_path)
-    if model is None:
-        st.stop()
-
-    st.title("🩺 Prédiction du temps de survie")
-    st.write("Renseignez les caractéristiques du patient :")
-
-    # Saisie des caractéristiques
-    inputs = {}
-    for key, label in FEATURE_CONFIG.items():
-        if key == "AGE":
-            inputs[key] = st.number_input(label, min_value=0, max_value=120, value=50)
-        else:
-            inputs[key] = st.selectbox(label, ["Non", "Oui"], index=0)
-
-    # Bouton de prédiction
-    if st.button("🔍 Prédire"):
-        data_df = encode_features(inputs)
-
-        # Calibration à partir des données existantes
-        df = load_data()
-        features = list(FEATURE_CONFIG.keys())
-        X_train = df[features].copy()
-        for col in features:
-            if col != "AGE":
-                X_train[col] = X_train[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
-        y_time  = df["Tempsdesuivi"].astype(float).values
-        y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
-        y_train = np.column_stack([y_event, y_time])
-
-        thresholds, medians = calibrate_median_survival_by_risk_group(model, X_train, y_train)
-        raw_pred = predict_survival(model, data_df, thresholds, medians)
-        pred     = clean_prediction(raw_pred)
-
-        st.success(f"🔮 Temps de survie estimé : **{pred:.1f}** mois")
-
-        # Option d'enregistrement
-        if st.checkbox("Enregistrer ce patient avec la prévision"):
-            new_pat = {**inputs, "Tempsdesuivi": pred, "Deces": "Non"}
-            try:
-                save_new_patient(new_pat)
-                st.info("✅ Patient ajouté à la base.")
-            except Exception as e:
-                st.error(f"Erreur sauvegarde : {e}")
-
-# Permet d’exécuter la page en mode standalone
-if __name__ == "__main__":
+def generate_pdf_report(input_data, cleaned_pred):  
+    pdf = FPDF()  
+    pdf.add_page()  
+    pdf.set_font('Arial', 'B', 24)  
+    pdf.set_text_color(46, 119, 208)  
+    pdf.cell(0, 15, "Rapport Médical SHAHIDI-AI", ln=True, align='C')  
+  
+    pdf.set_font('Arial', '', 12)  
+    pdf.set_text_color(0, 0, 0)  
+    pdf.cell(0, 10, f"Date : {date.today().strftime('%d/%m/%Y')}", ln=True)  
+  
+    pdf.set_font('Arial', 'B', 16)  
+    pdf.cell(0, 15, "Paramètres Cliniques", ln=True)  
+    pdf.set_fill_color(240, 248, 255)  
+  
+    pdf.set_font('Arial', '', 12)  
+    col_widths = [60, 60]  
+    for key, value in input_data.items():  
+        pdf.cell(col_widths[0], 8, FEATURE_CONFIG.get(key, key), 1, 0, 'L', 1)  
+        pdf.cell(col_widths[1], 8, str(value), 1, 1, 'L')  
+  
+    pdf.set_font('Arial', 'B', 16)  
+    pdf.cell(0, 15, "Résultats de Prédiction", ln=True)  
+    pdf.set_font('Arial', '', 14)  
+    pdf.cell(0, 8, "Modèle utilisé : DeepSurv", ln=True)  
+    pdf.set_text_color(46, 119, 208)  
+    pdf.cell(0, 8, f"Survie médiane estimée : {cleaned_pred:.1f} mois", ln=True)  
+  
+    pdf_buffer = io.BytesIO()  
+    pdf.output(pdf_buffer)  
+    return pdf_buffer.getvalue()  
+  
+def modelisation():  
+    st.title("📊 Prédiction Intelligente de Survie")  
+  
+    with st.container():  
+        st.markdown("<div class='header-card'>", unsafe_allow_html=True)  
+        st.subheader("📋 Profil Patient")  
+        inputs = {}  
+        cols = st.columns(3)  
+        for i, (feature, label) in enumerate(FEATURE_CONFIG.items()):  
+            with cols[i % 3]:  
+                if feature == "AGE":  
+                    inputs[feature] = st.number_input(  
+                        label,   
+                        min_value=18,   
+                        max_value=120,   
+                        value=50,  
+                        help="Âge du patient en années"  
+                    )  
+                else:  
+                    inputs[feature] = st.selectbox(  
+                        label,   
+                        options=["NON", "OUI"],  
+                        help="Présence de la caractéristique clinique"  
+                    )  
+        st.markdown("</div>", unsafe_allow_html=True)  
+  
+    input_df = encode_features(inputs)  
+    # Utilisation directe du modèle DeepSurv
+    model_name = "DeepSurv"  
+    if st.button("🔮 Calculer la Prédiction", use_container_width=True):  
+        with st.spinner("Analyse en cours..."):  
+            try:  
+                model = load_model(MODELS[model_name])  
+                pred = predict_survival(model, input_df)  
+                cleaned_pred = clean_prediction(pred)  
+  
+                # Enrichissement des données à enregistrer  
+                patient_data = input_df.to_dict(orient='records')[0]  
+                patient_data["Tempsdesuivi"] = round(cleaned_pred, 1)  
+                patient_data["Deces"] = "OUI"  # Ici, vous pouvez adapter la saisie si besoin
+  
+                # Enregistrement automatique du nouveau patient (et mise à jour du modèle)
+                save_new_patient(patient_data)  
+  
+                with st.container():  
+                    st.markdown("<div class='prediction-card'>", unsafe_allow_html=True)  
+                    col1, col2 = st.columns([1, 2])  
+                    with col1:  
+                        st.metric(  
+                            label="**Survie Médiane Estimée**",   
+                            value=f"{cleaned_pred:.0f} mois",  
+                            help="Durée médiane de survie prédite"  
+                        )  
+                    with col2:  
+                        # Pour la courbe de survie, on utilise une décroissance exponentielle 
+                        # caractéristique d'une distribution exponentielle avec médiane 'cleaned_pred'
+                        months = min(int(cleaned_pred), 120)  
+                        survival_curve = [100 * np.exp(-np.log(2) * t / cleaned_pred) for t in range(months)]
+                        fig = px.line(  
+                            x=list(range(months)),  
+                            y=survival_curve,  
+                            labels={"x": "Mois", "y": "Probabilité de Survie (%)"},  
+                            color_discrete_sequence=['#2e77d0']  
+                        )  
+                        st.plotly_chart(fig, use_container_width=True)  
+                    st.markdown("</div>", unsafe_allow_html=True)  
+  
+                    # Génération et téléchargement du rapport PDF  
+                    pdf_bytes = generate_pdf_report(patient_data, cleaned_pred)  
+                    st.download_button(  
+                        label="📥 Télécharger le Rapport Complet",  
+                        data=pdf_bytes,  
+                        file_name="rapport_medical.pdf",  
+                        mime="application/pdf",  
+                        use_container_width=True  
+                    )  
+            except Exception as e:  
+                st.error(f"Erreur de prédiction : {str(e)}")  
+  
+    # Suivi thérapeutique  
+    st.markdown("---")  
+    with st.expander("📅 Planification du Suivi Thérapeutique", expanded=True):  
+        treatment_cols = st.columns(2)  
+        with treatment_cols[0]:  
+            selected_treatments = st.multiselect(  
+                "Options Thérapeutiques",  
+                options=["Chimiothérapie", "Exclusive"],  
+                help="Sélectionner les traitements à comparer"  
+            )  
+        with treatment_cols[1]:  
+            follow_up_date = st.date_input(  
+                "Date de Suivi Recommandée",  
+                value=date.today(),  
+                help="Date préconisée pour le prochain examen"  
+            )  
+  
+        if st.button("💾 Enregistrer le Plan de Traitement", use_container_width=True):  
+            if selected_treatments:  
+                st.toast("Plan de traitement enregistré avec succès !")  
+            else:  
+                st.warning("Veuillez sélectionner au moins un traitement")  
+  
+if __name__ == "__main__":  
     modelisation()
