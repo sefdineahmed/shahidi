@@ -94,21 +94,24 @@ def load_data():
 @st.cache_resource(show_spinner=False)
 def load_model(model_path):
     """
-    Charge le modèle DeepSurv pré-entraîné.
+    Charge le modèle DeepSurv ou CoxPH pré-entraîné.
     """
     if not os.path.exists(model_path):
         st.error(f"❌ Modèle introuvable : {model_path}")
         return None
 
     try:
-        # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
-        def cox_loss(y_true, y_pred):
-            event = tf.cast(y_true[:, 0], dtype=tf.float32)
-            risk = y_pred[:, 0]
-            log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
-            loss = -tf.reduce_mean((risk - log_risk) * event)
-            return loss
-        return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
+        if model_path.endswith(".joblib"):  # Pour CoxPH
+            return joblib.load(model_path)
+        else:  # Pour DeepSurv
+            # Définition de la fonction de perte utilisée lors de l'entraînement DeepSurv (Cox Loss)
+            def cox_loss(y_true, y_pred):
+                event = tf.cast(y_true[:, 0], dtype=tf.float32)
+                risk = y_pred[:, 0]
+                log_risk = tf.math.log(tf.cumsum(tf.exp(risk), reverse=True))
+                loss = -tf.reduce_mean((risk - log_risk) * event)
+                return loss
+            return tf_load_model(model_path, custom_objects={"cox_loss": cox_loss})
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement du modèle : {e}")
         return None
@@ -131,22 +134,30 @@ def encode_features(inputs):
                 encoded[k] = float(v)
     return pd.DataFrame([encoded], dtype=float)
 
-def predict_survival(model, data):
+def predict_survival(model, data, model_type="DeepSurv"):
     """
-    Effectue la prédiction du temps de survie avec le modèle DeepSurv.
+    Effectue la prédiction du temps de survie avec le modèle.
     """
-    if hasattr(model, "predict"):
-        raw_pred = model.predict(data)
-        if isinstance(raw_pred, np.ndarray):
-            if raw_pred.ndim == 2:
-                raw_pred = raw_pred[0][0]
-            else:
-                raw_pred = raw_pred[0]
-        baseline_median = 60.0
-        est_time = baseline_median * np.exp(-raw_pred)
-        return est_time
+    if model_type == "DeepSurv":
+        if hasattr(model, "predict"):
+            raw_pred = model.predict(data)
+            if isinstance(raw_pred, np.ndarray):
+                if raw_pred.ndim == 2:
+                    raw_pred = raw_pred[0][0]
+                else:
+                    raw_pred = raw_pred[0]
+            baseline_median = 60.0
+            est_time = baseline_median * np.exp(-raw_pred)
+            return est_time
+        else:
+            raise ValueError("Le modèle DeepSurv ne supporte pas la prédiction.")
+    elif model_type == "CoxPH":
+        # Pour CoxPH, la prédiction est généralement basée sur un score linéaire
+        score = model.predict(data)
+        # L'implémentation peut être ajustée selon le modèle CoxPH utilisé
+        return np.exp(score)
     else:
-        raise ValueError("Le modèle DeepSurv ne supporte pas la prédiction.")
+        raise ValueError("Type de modèle inconnu.")
 
 def clean_prediction(prediction):
     """
