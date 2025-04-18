@@ -116,25 +116,24 @@ def load_model(model_path):
 def encode_features(inputs):
     """
     Encode les variables cliniques :
-    - Pour 'AGE', on conserve la valeur numérique.
-    - Pour les autres, "OUI" devient "OUI" et toute autre valeur devient "NON".
+    - 'AGE' reste numérique
+    - Toutes les autres valeurs : "OUI" -> 1.0, sinon -> 0.0
+    Retourne un DataFrame avec uniquement des types numériques (float).
     """
     encoded = {}
     for k, v in inputs.items():
         if k == "AGE":
-            encoded[k] = v  # L'âge reste numérique.
+            encoded[k] = float(v)
         else:
-            encoded[k] = "OUI" if v.upper() == "OUI" else "NON"  # "OUI" ou "NON" pour les autres.
-    return pd.DataFrame([encoded])
+            if isinstance(v, str):
+                encoded[k] = 1.0 if v.strip().upper() == "OUI" else 0.0
+            else:
+                encoded[k] = float(v)
+    return pd.DataFrame([encoded], dtype=float)
 
 def predict_survival(model, data):
     """
     Effectue la prédiction du temps de survie avec le modèle DeepSurv.
-    
-    Correction : on transforme la prédiction brute (risque) en une estimation de la survie médiane.
-    En utilisant l'hypothèse d'une distribution exponentielle, la survie médiane est estimée par :
-        survie = baseline_median * exp(-risk)
-    Ainsi, si tous les champs sont "Non" (risk proche de 0), la survie sera d'environ 60 mois.
     """
     if hasattr(model, "predict"):
         raw_pred = model.predict(data)
@@ -165,61 +164,51 @@ def save_new_patient(new_patient_data):
     Enregistre les informations d'un nouveau patient dans le fichier Excel
     et déclenche l'actualisation incrémentale du modèle.
     """
-    df = load_data()  # Charger les données existantes depuis le fichier Excel.
-    new_df = pd.DataFrame([new_patient_data])  # Convertir les données du nouveau patient en DataFrame.
+    df = load_data()
+    new_df = pd.DataFrame([new_patient_data])
     
-    # Assurer que les valeurs sont bien formatées en 'OUI'/'NON' avant l'enregistrement
     for column in new_df.columns:
         if column != "AGE":
-            new_df[column] = new_df[column].upper() if new_df[column].upper() == "OUI" else "NON"
+            new_df[column] = new_df[column].apply(lambda x: "OUI" if str(x).upper() == "OUI" else "NON")
 
-    # Ajout des nouvelles données dans le DataFrame existant
     df = pd.concat([df, new_df], ignore_index=True)
 
     try:
-        df.to_excel(DATA_PATH, index=False)  # Enregistrement dans le fichier Excel.
+        df.to_excel(DATA_PATH, index=False)
         st.success("Les informations du nouveau patient ont été enregistrées.")
-        load_data.clear()  # Vider le cache des données pour forcer le rechargement.
-        update_deepsurv_model()  # Mise à jour incrémentale du modèle avec l'ensemble des données.
+        load_data.clear()
+        update_deepsurv_model()
     except Exception as e:
         st.error(f"Erreur lors de l'enregistrement des données : {e}")
 
 def update_deepsurv_model():
     """
-    Recharge l'ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
+    Recharge l’ensemble des données et ajuste (fine-tune) le modèle DeepSurv 
     avec les nouvelles informations patient.
-    
-    Cette fonction effectue un entraînement supplémentaire (fine-tuning) sur l'ensemble des données.
     """
-    df = load_data()  # Charger toutes les données à partir du fichier Excel.
+    df = load_data()
     if df.empty:
         st.warning("La base de données est vide. Impossible de mettre à jour le modèle.")
         return
 
-    # Préparation des features
     feature_cols = list(FEATURE_CONFIG.keys())
     X = df[feature_cols].copy()
 
-    # Assurer que toutes les colonnes sont correctement encodées (OUI ou NON)
     for col in feature_cols:
         if col != "AGE":
             X[col] = X[col].apply(lambda x: 1 if str(x).upper() == "OUI" else 0)
 
-    # Préparation des cibles
     y_duration = df["Tempsdesuivi"].values
     y_event = df["Deces"].apply(lambda x: 1 if str(x).upper() == "OUI" else 0).values
     y = np.column_stack([y_event, y_duration])
 
-    # Chargement et compilation du modèle DeepSurv
     model = load_model(MODELS["DeepSurv"])
     if model is None:
         st.error("Le modèle DeepSurv n'a pas pu être chargé pour la mise à jour.")
         return
 
-    model.compile(optimizer=adam, loss=cox_loss)  # Utilisation de la fonction de perte customisée.
+    model.compile(optimizer=adam, loss=cox_loss)
     st.info("Mise à jour du modèle DeepSurv en cours...")
-    model.fit(X, y, epochs=10, batch_size=32)  # Entraînement du modèle avec les nouvelles données.
-
-    # Sauvegarde du modèle mis à jour
+    model.fit(X, y, epochs=10, batch_size=32)
     model.save(MODELS["DeepSurv"])
     st.success("Le modèle DeepSurv a été actualisé avec succès.")
