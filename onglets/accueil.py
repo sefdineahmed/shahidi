@@ -1,7 +1,7 @@
 from PIL import Image
 import streamlit as st
 import os
-from utils import LOGO_PATH  # On récupère ton chemin
+#from utils import LOGO_PATH  # On récupère ton chemin
 import base64
 
 # Fonction pour convertir une image en base64 (obligatoire pour Streamlit)
