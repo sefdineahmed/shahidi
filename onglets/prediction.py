@@ -100,9 +100,8 @@ def show_model_info(selected_model):
                 "Adapté aux données complexes",
                 "Mise à jour incrémentale"
             ]
-        }
-    },
-           #"CoxPH": {
+        },
+             #"CoxPH": {
             "description": "Modèle de régression de Cox proportionnelle",
             "avantages": [
                 "Interprétabilité statistique",
@@ -111,6 +110,8 @@ def show_model_info(selected_model):
             ]
         }
     
+    }
+
     with st.sidebar.expander("ℹ️ Info Modèle", expanded=True):
         st.markdown(f"**{selected_model}**")
         st.caption(model_info[selected_model]["description"])
