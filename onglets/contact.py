@@ -112,7 +112,6 @@ def contact():
                 <h3 style="color: var(--primary); margin-bottom: 1.5rem;">📌 Coordonnées</h3>
                 
                 <div class='info-item'>
-                    <div style="margin-right: 1rem;">🏥</div>
                     <div>
                         <h4 style="margin: 0; color: var(--secondary);">🏥 Clinique SHAHIDI-AI</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
@@ -123,7 +122,6 @@ def contact():
                 </div>
                 
                 <div class='info-item'>
-                    <div style="margin-right: 1rem;">📞</div>
                     <div>
                         <h4 style="margin: 0; color: var(--secondary);">📞 Téléphone</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
@@ -134,7 +132,6 @@ def contact():
                 </div>
                 
                 <div class='info-item'>
-                    <div style="margin-right: 1rem;">🌐</div>
                     <div>
                         <h4 style="margin: 0; color: var(--secondary);">🌐 Réseaux Sociaux</h4>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
