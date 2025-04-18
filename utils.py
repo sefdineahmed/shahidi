@@ -118,30 +118,24 @@ def clean_prediction(prediction):
     return max(pred_val, 1)
 
 # --- Sauvegarde d'un nouveau patient ---
-def save_new_patient(new_patient_data):
-    def bool_to_oui_non(val):
-        if isinstance(val, (int, float)):
-            return "OUI" if val == 1 else "NON"
-        return str(val)
-
-    df = load_data()
-    new_df = pd.DataFrame([{
-        k: bool_to_oui_non(v) if k != "AGE" else v
-        for k, v in new_patient_data.items()
-    }])
-    for col in new_df.columns:
-        if new_df[col].dtype == "object":
-            new_df[col] = new_df[col].astype(str)
-
-    df = pd.concat([df, new_df], ignore_index=True)
+def save_new_patient(new_patient: dict, filename: str = "data/suivi.csv"):
+    import pandas as pd
+    import os
 
     try:
-        df.to_excel(DATA_PATH, index=False)
-        st.success("✅ Les informations du nouveau patient ont été enregistrées.")
-        load_data.clear()
-        update_deepsurv_model()
+        # Forcer les types en str/float
+        new_patient_clean = {k: (float(v) if isinstance(v, (int, float)) else str(v)) for k, v in new_patient.items()}
+
+        new_entry = pd.DataFrame([new_patient_clean])
+        if os.path.exists(filename):
+            df = pd.read_csv(filename)
+            df = pd.concat([df, new_entry], ignore_index=True)
+        else:
+            df = new_entry
+        df.to_csv(filename, index=False)
     except Exception as e:
-        st.error(f"❌ Erreur lors de l'enregistrement des données : {e}")
+        raise RuntimeError(f"Erreur lors de l'enregistrement des données : {e}")
+
 
 # --- Mise à jour du modèle DeepSurv avec les nouvelles données ---
 def update_deepsurv_model():
