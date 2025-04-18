@@ -100,14 +100,6 @@ def show_model_info(selected_model):
                 "Adapté aux données complexes",
                 "Mise à jour incrémentale"
             ]
-        },
-        "CoxPH": {
-            "description": "Modèle de régression de Cox proportionnelle",
-            "avantages": [
-                "Interprétabilité statistique",
-                "Rapide pour les petites données",
-                "Standard en recherche médicale"
-            ]
         }
     }
     
