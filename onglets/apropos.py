@@ -155,7 +155,7 @@ def a_propos():
     cols = st.columns(3)
     team_members = [
         {"photo": "assets/team/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
-        {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostaticien"},
+        {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
         {"photo": "assets/team/sefdine.jpeg", "name": "Ahmed Sefdine", "role": "Student - SID"}
     ]
     
