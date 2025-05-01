@@ -27,6 +27,8 @@ except ImportError:
 adam = Adam()
 DATA_PATH = "data/data.xlsx"
 LOGO_PATH = "assets/background.jpeg"
+MENU_PATH = "assets/header.jpeg"
+
 
 # Définition des membres de l'équipe
 TEAM_MEMBERS = [
