@@ -3,6 +3,7 @@ import streamlit as st
 import os
 import base64
 from utils import LOGO_PATH # On récupère le chemin défini dans utils.py
+from utils import MENU_PATH
 
 # Fonction pour convertir une image en base64 (utile pour le background)
 def get_base64_bg(path):
@@ -12,7 +13,7 @@ def get_base64_bg(path):
 
 def a_propos():
     # Convertir l'image du logo en base64 pour l'utiliser comme background
-    bg_image = get_base64_bg(LOGO_PATH)
+    bg_image = get_base64_bg(MENU_PATH)
 
     # Section HERO avec le style inspiré de "accueil"
     st.markdown(f"""
