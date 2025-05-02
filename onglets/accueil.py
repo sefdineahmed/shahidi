@@ -147,7 +147,6 @@ def accueil():
             <p class="sub-title">
                 Plateforme IA de pointe pour la lutte contre les cancers digestifs
             </p>
-            <button class="custom-btn">Découvrir la Technologie</button>
         </div>
         <!-- SECTION IMPRESSIONNANTE -->
         <div class="impression-section">
