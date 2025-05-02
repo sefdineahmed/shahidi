@@ -13,48 +13,6 @@ def get_base64_bg(path):
     return f"data:image/jpeg;base64,{encoded}"
 
 def a_propos():
-    # Convertir l'image du logo en base64 pour l'utiliser comme background
-    bg_image = get_base64_bg(MENU_PATH)
-
-    # Section HERO avec le style inspiré de "accueil"
-    st.markdown(f"""
-        <style>
-            .custom-bg {{
-                background-image: url("{bg_image}");
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                height: 80vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                padding: 2rem;
-                border-radius: 10px;
-                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-            }}
-
-            .main-title {{
-                font-size: 3rem;
-                font-weight: bold;
-                color: #ffffff;
-                margin-bottom: 1rem;
-            }}
-
-            .sub-title {{
-                font-size: 1.5rem;
-                color: #ffffff;
-            }}
-        </style>
-
-        <div class="custom-bg">
-            <h1 class="main-title">🩺 Prévision du Temps de Survie du Cancer Gastrique</h1>
-            <p class="sub-title">L'intelligence artificielle au service de l'oncologie clinique au Sénégal.</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # ---------------------------------
     # Section Statistiques Clés
     st.markdown("### Principaux Indicateurs Épidémiologiques")
     cols = st.columns(3)
