@@ -149,6 +149,13 @@ def accueil():
             </p>
             <button class="custom-btn">Découvrir la Technologie</button>
         </div>
+        <!-- SECTION IMPRESSIONNANTE -->
+        <div class="impression-section">
+            <h2>Un Futur Prometteur avec l'IA</h2>
+            <p>Notre plateforme révolutionne l'approche diagnostique et thérapeutique des cancers digestifs, en vous offrant des prédictions de survie précises et des solutions innovantes basées sur l'intelligence artificielle.</p>
+            <button class="highlight-btn">Explorez Notre Solution</button>
+        </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     accueil()
