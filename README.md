@@ -11,7 +11,7 @@ C'est une application interactive développée avec [Streamlit](https://shahidi-
 - **📚 À Propos** : Explication des causes, symptômes et traitements du cancer gastrique.
 - **📩 Contact** : Formulaire de contact pour toute question ou suggestion.
 ---
-![Aperçu de l’app shahidi](assets/shahidi.png)
+![https://shahidi-ai.streamlit.app/](assets/shahidi.png)
 ---
 
 ## 🛠️ **Technologies utilisées**
