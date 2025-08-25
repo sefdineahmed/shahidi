@@ -1,6 +1,6 @@
 # 📊 **shahidi - Plateforme d'Aide à la Décision** ⚕️
 
-C'est une application interactive développée avec \url[Streamlit]{https://shahidi-ai.streamlit.app/} permettant d'estimer le temps de survie des patients atteints du cancer gastrique après traitement. L'objectif est d'offrir un outil d'aide à la décision basé sur l'intelligence artificielle et l'analyse de survie.
+C'est une application interactive développée avec [Streamlit](https://shahidi-ai.streamlit.app/) permettant d'estimer le temps de survie des patients atteints du cancer gastrique après traitement. L'objectif est d'offrir un outil d'aide à la décision basé sur l'intelligence artificielle et l'analyse de survie.
 
 ---
 
