@@ -10,7 +10,8 @@ C'est une application interactive développée avec [Streamlit](https://shahidi-
 - **🤖 Prédiction de survie** : Utilisation de modèles statistiques et d'apprentissage automatique pour estimer le temps de survie.
 - **📚 À Propos** : Explication des causes, symptômes et traitements du cancer gastrique.
 - **📩 Contact** : Formulaire de contact pour toute question ou suggestion.
-![Aperçu de l’app shahidi](https://shahidi-ai.streamlit.app/shahidi.png)
+---
+![Aperçu de l’app shahidi](assets/shahidi.png)
 ---
 
 ## 🛠️ **Technologies utilisées**
