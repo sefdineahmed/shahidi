@@ -17,7 +17,7 @@ def send_email(name, sender_email, message):
         msg = MIMEMultipart()
         msg["From"] = EMAIL_SENDER
         msg["To"] = EMAIL_RECEIVER
-        msg["Subject"] = f"📬 Nouveau contact SHAHIDI-AI : {name}"
+        msg["Subject"] = f"Nouveau contact SHAHIDI-AI : {name}"
         
         html = f"""
         <html>
@@ -26,11 +26,11 @@ def send_email(name, sender_email, message):
                   <div style="padding: 30px 20px; text-align: left;">
                     <div style="margin-bottom: 25px;">
                       <p style="font-size: 16px; color: #444; margin: 8px 0;">
-                        <strong style="color: #2e77d0;">📧 Email :</strong><br>
+                        <strong style="color: #2e77d0;">Email :</strong><br>
                         {sender_email}
                       </p>
                       <p style="font-size: 16px; color: #444; margin: 8px 0;">
-                        <strong style="color: #2e77d0;">📝 Message :</strong><br>
+                        <strong style="color: #2e77d0;">Message :</strong><br>
                         <div style="background: #f8faff; padding: 15px; border-radius: 8px; margin-top: 10px;">
                           {message}
                         </div>
@@ -57,7 +57,7 @@ def send_email(name, sender_email, message):
         
         return True
     except Exception as e:
-        st.error(f"❌ Erreur d'envoi : {str(e)}")
+        st.error(f"Erreur d'envoi : {str(e)}")
         return False
 
 def validate_email(email):
@@ -74,7 +74,7 @@ def contact():
         # En-tête
         st.markdown("""
             <div class='contact-header'>
-                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">📬 Contactez Notre Équipe Médicale</h1>
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Contactez notre équipe médicale</h1>
                 <p style="font-size: 1.2rem; opacity: 0.9;">
                     Une question ? Un projet ? Nous répondons sous 24h
                 </p>
@@ -102,18 +102,18 @@ def contact():
                                     placeholder="Décrivez votre demande en détail...")
                 st.markdown("</div>", unsafe_allow_html=True)
                 
-                submitted = st.form_submit_button("Envoyer le Message ✉️", use_container_width=True)
+                submitted = st.form_submit_button("Envoyer le Message", use_container_width=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
         with col2:
             # Informations de contact
             st.markdown("<div class='contact-info-card'>", unsafe_allow_html=True)
             st.markdown("""
-                <h3 style="color: var(--primary); margin-bottom: 1.5rem;">📌 Coordonnées</h3>
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem;">Coordonnées</h3>
                 
                 <div class='info-item'>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">🏥 Clinique SHAHIDI-AI</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">Clinique shahidi</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
                             123 Rue de la Santé<br>
                             Dakar, Sénégal
@@ -123,7 +123,7 @@ def contact():
                 
                 <div class='info-item'>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">📞 Téléphone</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">Téléphone</h4>
                         <p style="margin: 0.3rem 0 0; color: #666;">
                             +221 77 808 09 42<br>
                             Urgences 24/7
@@ -133,10 +133,10 @@ def contact():
                 
                 <div class='info-item'>
                     <div>
-                        <h4 style="margin: 0; color: var(--secondary);">🌐 Réseaux Sociaux</h4>
+                        <h4 style="margin: 0; color: var(--secondary);">Réseaux Sociaux</h4>
                         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <a href="https://www.linkedin.com/in/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🔗 LinkedIn</a>
-                            <a href="https://twitter.com/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;">🐦 Twitter</a>
+                            <a href="https://twitter.com/sefdineahmed" target="_blank" style="color: var(--primary); text-decoration: none;"> X (ex : Twitter)</a>
                         </div>
                     </div>
                 </div>
@@ -146,15 +146,15 @@ def contact():
         # Validation et envoi
         if submitted:
             if not all([name, email, message]):
-                st.error("🚨 Tous les champs obligatoires (*) doivent être remplis")
+                st.error("Tous les champs obligatoires (*) doivent être remplis")
             elif not validate_email(email):
-                st.error("📧 Format d'email invalide")
+                st.error("Format d'email invalide")
             else:
                 with st.spinner("Envoi en cours..."):
                     if send_email(name, email, message):
                         st.success("""
                             <div style="display: flex; align-items: center; padding: 1.5rem; background: #f0faff; border-radius: 12px; margin: 2rem 0;">
-                                <div style="font-size: 2rem; margin-right: 1rem;">✅</div>
+                                <div style="font-size: 2rem; margin-right: 1rem;"></div>
                                 <div>
                                     <h3 style="margin: 0; color: var(--primary);">Message envoyé !</h3>
                                     <p style="margin: 0.3rem 0 0; color: #666;">Nous vous répondrons dans les 24 heures</p>
