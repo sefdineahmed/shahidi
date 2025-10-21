@@ -63,7 +63,7 @@ def show_model_info(selected):
             "av": ["Statistique interprétable","Rapide","Standard médical"]
         }
     }
-    with st.sidebar.expander("ℹ️ Info Modèle", expanded=True):
+    with st.sidebar.expander("Info Modèle", expanded=True):
         st.markdown(f"**{selected}**")
         st.caption(info[selected]["desc"])
         st.markdown("**Avantages :**")
@@ -71,10 +71,10 @@ def show_model_info(selected):
             st.markdown(f"- {a}")
 
 def modelisation():
-    st.title("📊 Prédiction Intelligente de Survie")
+    st.title("Prédiction Intelligente de Survie")
 
     with st.sidebar:
-        st.subheader("⚙️ Configuration")
+        st.subheader("Configuration")
         selected = st.selectbox(
             "Modèle",
             options=list(MODELS.keys()),
@@ -83,7 +83,7 @@ def modelisation():
         show_model_info(selected)
 
     st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-    st.subheader("📋 Profil Patient")
+    st.subheader("Profil Patient")
     inputs = {}
     cols = st.columns(3)
     for i,(feat,label) in enumerate(FEATURE_CONFIG.items()):
@@ -94,7 +94,7 @@ def modelisation():
                 inputs[feat] = st.selectbox(label,["NON","OUI"])
     st.markdown("</div>", unsafe_allow_html=True)
 
-    if st.button("🔮 Calculer la Prédiction", use_container_width=True):
+    if st.button("Calculer la Prédiction", use_container_width=True):
         with st.spinner("Analyse en cours..."):
             try:
                 model = load_model(MODELS[selected])
@@ -121,7 +121,7 @@ def modelisation():
                 st.markdown("</div>", unsafe_allow_html=True)
 
                 pdfb = generate_pdf_report(rec, cpred, selected)
-                st.download_button("📥 Télécharger PDF", pdfb, "rapport.pdf", "application/pdf")
+                st.download_button("Télécharger PDF", pdfb, "rapport.pdf", "application/pdf")
             except Exception as e:
                 st.error(f"Erreur de prédiction : {e}")
 
