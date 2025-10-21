@@ -31,7 +31,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def analyse_descriptive():
-    st.title("🔍 Analyse Exploratoire des Données")
+    st.title("Analyse Exploratoire des Données")
 
     df = load_data()
     if df.empty:
@@ -40,7 +40,7 @@ def analyse_descriptive():
 
     # ────────── Aperçu ──────────
     st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-    st.subheader("📁 Vue d'Ensemble")
+    st.subheader("Vue d'Ensemble")
     st.dataframe(df.head(), height=250)
     
     c1, c2, c3 = st.columns(3)
@@ -58,7 +58,7 @@ def analyse_descriptive():
 
     # ────────── Statistiques descriptives ──────────
     st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-    st.subheader("📊 Statistiques Descriptives")
+    st.subheader("Statistiques Descriptives")
 
     selected_var = st.selectbox("Sélectionner une variable à analyser", df.columns)
 
@@ -77,7 +77,7 @@ def analyse_descriptive():
         st.plotly_chart(fig, use_container_width=True)
 
     else:
-        st.info(f"🔠 Variable catégorielle détectée : **{selected_var}**")
+        st.info(f"Variable catégorielle détectée : **{selected_var}**")
         cat_counts = df[selected_var].value_counts().reset_index()
         cat_counts.columns = [selected_var, "Effectif"]
 
@@ -90,7 +90,7 @@ def analyse_descriptive():
 
     # ────────── Corrélation ──────────
     st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-    st.subheader("🔗 Matrice de Corrélation")
+    st.subheader("Matrice de Corrélation")
 
     numeric_df = df.select_dtypes(include="number")
     if not numeric_df.empty:
@@ -111,7 +111,7 @@ def analyse_descriptive():
 
     # ────────── Valeurs manquantes ──────────
     st.markdown("<div class='header-card'>", unsafe_allow_html=True)
-    st.subheader("🔎 Analyse des Données Manquantes")
+    st.subheader("Analyse des Données Manquantes")
 
     missing_data = df.isna().sum()
     missing_data = missing_data[missing_data > 0].reset_index()
@@ -121,7 +121,7 @@ def analyse_descriptive():
         fig = px.bar(missing_data, x="Variable", y="Valeurs Manquantes", color="Valeurs Manquantes", color_continuous_scale="Blues")
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.success("✅ Aucune donnée manquante détectée")
+        st.success("Aucune donnée manquante détectée")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
