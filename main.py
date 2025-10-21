@@ -11,11 +11,11 @@ st.set_page_config(
 
 # Dictionnaire des pages
 PAGES = {
-    "🏠 Accueil": accueil,
-    "📊 Analyse": analyse_descriptive,
-    "🤖 Prédiction": modelisation,
-    "📚 À Propos": a_propos,
-    "📩 Contact": contact
+    "Accueil": accueil,
+    "Analyse": analyse_descriptive,
+    "Prédiction": modelisation,
+    "À Propos": a_propos,
+    "Contact": contact
 }
 
 def main():
