@@ -100,12 +100,12 @@ def a_propos():
         <div style="background: rgba(white); padding: 1rem; border-radius: 10px;">
             <h3>Interprétation des Résultats</h3>
             <ul style="line-height: 1.8;">
-                <li>📉 Meilleure performance du modèle Deep Survival</li>
-                <li>⏱ Stabilité temporelle des prédictions</li>
-                <li>🎯 Faible erreur intégrée (IBS)</li>
+                <li>Meilleure performance du modèle Deep Survival</li>
+                <li>Stabilité temporelle des prédictions</li>
+                <li>Faible erreur intégrée (IBS)</li>
             </ul>
             <div style="background-color: #2e77d0; color: #fff; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 0.85rem;">
-                🔬 Validation croisée (k=10)
+                Validation croisée (k=10)
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -128,7 +128,7 @@ def a_propos():
                     <h3 style="margin: 0.5rem 0; color: #0f172a;">{member['name']}</h3>
                     <p style="margin: 0; color: #334155;">{member['role']}</p>
                     <div style="background-color: #2e77d0; color: #fff; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 0.85rem;">
-                        🏥 CHU Dakar
+                        CHU Dakar
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
