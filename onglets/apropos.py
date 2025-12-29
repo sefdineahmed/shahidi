@@ -4,7 +4,7 @@ import os
 import base64
 from utils import LOGO_PATH # On récupère le chemin défini dans utils.py
 from utils import MENU_PATH
-from utils import TEAM_MEMBERS
+from utils import TEAM
 
 # Fonction pour convertir une image en base64 (utile pour le background)
 def get_base64_bg(path):
@@ -72,16 +72,17 @@ def a_propos():
         </table>
     </div>
     """, unsafe_allow_html=True)
+    
     # Section Équipe de Recherche
     st.markdown("## Équipe de Recherche", unsafe_allow_html=True)
     cols = st.columns(3)
-    TEAM_MEMBERS = [
+    TEAM = [
         {"photo": "assets/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
         {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
         {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
     ]
     
-    for col, member in zip(cols, TEAM_MEMBERS):
+    for col, member in zip(cols, TEAM):
         with col:
             try:
                 st.markdown(f"""
