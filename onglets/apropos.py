@@ -54,7 +54,7 @@ def a_propos():
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.080</td>
                 </tr>
 
-                <tr style="background-color: #d1fae5; font-weight: bold;">
+                <tr>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Deep Survival</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.92</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.044</td>
