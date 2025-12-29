@@ -31,14 +31,14 @@ MENU_PATH = "assets/header.jpeg"
 
 
 # Définition des membres de l'équipe
-TEAM_MEMBERS = [
+TEAM = [
     {
         "name": "Pr. Aba Diop",
         "Etablissement": "Université Alioune Diop de Bamby",
         "role": "Maître de Conférences",
         "email": "aba.diop@example.com",
         "linkedin": "https://linkedin.com/in/abadiop",
-        "photo": "assets/team/aba.jpeg"
+        "photo": "assets/aba.jpeg"
     },
     {
         "name": "PhD. Idrissa Sy",
