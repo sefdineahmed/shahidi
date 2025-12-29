@@ -73,30 +73,30 @@ def a_propos():
     </div>
     """, unsafe_allow_html=True)
     
-    # Section Équipe de Recherche
-    st.markdown("## Équipe de Recherche", unsafe_allow_html=True)
-    cols = st.columns(3)
-    TEAM = [
-        {"photo": "assets/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
-        {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
-        {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
-    ]
-    
-    for col, member in zip(cols, TEAM):
-        with col:
-            try:
-                st.markdown(f"""
-                <div style="background: rgba(255,255,255,0.8); text-align: center; padding: 1rem; border-radius: 10px; margin-top: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
-                    <img src="{member['photo']}" style="width: 100%; border-radius: 10px; height: 220px; object-fit: cover; border: 3px solid #2e77d0;" alt="{member['name']}">
-                    <h3 style="margin: 0.5rem 0; color: #0f172a;">{member['name']}</h3>
-                    <p style="margin: 0; color: #334155;">{member['role']}</p>
-                    <div style="background-color: #2e77d0; color: #fff; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 0.85rem;">
-                        CHU Dakar
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Erreur d'affichage du profil : {str(e)}")
+# Section Équipe de Recherche
+st.markdown("## Équipe de Recherche")
+cols = st.columns(3)
+
+TEAM_LOCAL = [
+    {"photo": "assets/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
+    {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
+    {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
+]
+
+for col, member in zip(cols, TEAM_LOCAL):
+    with col:
+        if not os.path.exists(member["photo"]):
+            st.error(f"Image introuvable : {member['photo']}")
+        else:
+            st.image(
+                member["photo"],
+                use_container_width=True
+            )
+            st.markdown(f"""
+            <h4 style="text-align:center">{member['name']}</h4>
+            <p style="text-align:center; color:#334155">{member['role']}</p>
+            """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     a_propos()
