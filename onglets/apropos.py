@@ -49,12 +49,21 @@ def a_propos():
             </thead>
             <tbody>
                 <tr>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Random Survival Forest</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.84</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.077</td>
+                </tr>
+                <tr>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Cox PH</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.85</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.080</td>
                 </tr>
-
                 <tr>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Gradient Boosting</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.87</td>
+                    <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.085</td>
+                </tr>
+                <tr style="background-color: #d1fae5; font-weight: bold;">
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">Deep Survival</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.92</td>
                     <td style="border: 1px solid #ccc; padding: 0.75rem; text-align: center;">0.044</td>
@@ -63,8 +72,6 @@ def a_propos():
         </table>
     </div>
     """, unsafe_allow_html=True)
-          
-
     # Section Équipe de Recherche
     st.markdown("## Équipe de Recherche", unsafe_allow_html=True)
     cols = st.columns(3)
