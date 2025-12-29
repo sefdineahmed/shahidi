@@ -76,7 +76,7 @@ def a_propos():
     st.markdown("## Équipe de Recherche", unsafe_allow_html=True)
     cols = st.columns(3)
     TEAM_MEMBERS = [
-        {"photo": "assets/team/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
+        {"photo": "assets/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
         {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
         {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
     ]
