@@ -78,7 +78,7 @@ def a_propos():
     TEAM_MEMBERS = [
         {"photo": "assets/team/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
         {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
-        {"photo": "assets/team/sefdine.jpeg", "name": "Ahmed Sefdine", "role": "Student - SID"}
+        {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
     ]
     
     for col, member in zip(cols, TEAM_MEMBERS):
