@@ -74,28 +74,49 @@ def a_propos():
     """, unsafe_allow_html=True)
     
 # Section Équipe de Recherche
+# Section Équipe de Recherche
 st.markdown("## Équipe de Recherche")
-cols = st.columns(3)
 
-TEAM_LOCAL = [
-    {"photo": "assets/aba.jpeg", "name": "Pr. Aba Diop", "role": "Enseignant-Chercheur"},
-    {"photo": "assets/team/sy.jpeg", "name": "Dr. Idrissa Sy", "role": "Biostatisticien"},
-    {"photo": "assets/team/sefdine.jpeg", "name": "Mr. Ahmed Sefdine", "role": "Data Scientist"}
-]
+# Slider pour la taille des photos
+photo_width = st.slider(
+    "Taille des photos",
+    min_value=120,
+    max_value=300,
+    value=200,
+    step=10
+)
 
-for col, member in zip(cols, TEAM_LOCAL):
+cols = st.columns(len(TEAM))
+
+for col, member in zip(cols, TEAM):
     with col:
-        if not os.path.exists(member["photo"]):
-            st.error(f"Image introuvable : {member['photo']}")
-        else:
-            st.image(
-                member["photo"],
-                use_container_width=True
-            )
-            st.markdown(f"""
-            <h4 style="text-align:center">{member['name']}</h4>
-            <p style="text-align:center; color:#334155">{member['role']}</p>
-            """, unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div style="background: rgba(255,255,255,0.85);
+                        padding: 1rem;
+                        border-radius: 12px;
+                        text-align: center;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            """,
+            unsafe_allow_html=True
+        )
+
+        # ✅ Affichage correct de l'image
+        st.image(
+            member["photo"],
+            width=photo_width
+        )
+
+        st.markdown(f"### {member['name']}")
+        st.markdown(f"*{member['role']}*")
+        st.markdown(
+            f"<span style='background:#2e77d0;color:white;padding:4px 10px;border-radius:12px;font-size:0.8rem;'>"
+            f"{member['Etablissement']}</span>",
+            unsafe_allow_html=True
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+True)
 
 
 if __name__ == "__main__":
